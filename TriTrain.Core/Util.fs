@@ -187,3 +187,53 @@ module Observable =
       error err
 
     member this.AsObservable = obs
+
+module ObjectElementSeq =
+  open System
+  open System.Linq
+  open Microsoft.FSharp.Reflection
+
+  let cast (t: Type) (xs: obj seq) =
+    let enumerable = typeof<Enumerable>
+    let cast =
+      let nonGeneric = enumerable.GetMethod("Cast")
+      nonGeneric.MakeGenericMethod([| t |])
+    cast.Invoke(null, [| xs |])
+
+  let toSet (t: Type) (xs: obj seq) =
+    let setType         = typedefof<Set<_>>.MakeGenericType(t)
+    let parameter       = xs |> cast t
+    let parameterType   = typedefof<seq<_>>.MakeGenericType([| t |])
+    let constructor'    = setType.GetConstructor([| parameterType |])
+    in constructor'.Invoke([| parameter |])
+
+module Yaml =
+  open FsYaml
+  open FsYaml.NativeTypes
+  open FsYaml.RepresentationTypes
+  open FsYaml.CustomTypeDefinition
+
+  let setDef =
+    {
+      Accept = isGenericTypeDef (typedefof<Set<_>>)
+      Construct = fun construct' t ->
+        function
+        | Sequence (s, _) ->
+            let elemType = t.GetGenericArguments().[0]
+            let elems = s |> List.map (construct' elemType)
+            in ObjectElementSeq.toSet elemType elems
+        | otherwise -> raise (mustBeSequence t otherwise)
+      Represent =
+        representSeqAsSequence
+    }
+
+  let customDefs =
+    [
+      setDef
+    ]
+
+  let customDump x =
+    Yaml.dumpWith customDefs x
+
+  let customTryLoad<'t> =
+    Yaml.tryLoadWith<'t> customDefs
