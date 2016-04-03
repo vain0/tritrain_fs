@@ -17,7 +17,7 @@ module DeckSpec =
       return spec
     }
 
-  let serialize self =
+  let serialize (self: DeckSpec) =
     Yaml.customDump self
 
   let load path =
@@ -27,7 +27,7 @@ module DeckSpec =
     with
     | e -> fail (e.Message)
 
-  let save path spec =
+  let save path (spec: DeckSpec) =
     try
       File.WriteAllText(path, spec |> serialize)
       |> pass
