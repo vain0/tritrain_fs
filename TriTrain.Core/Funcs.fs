@@ -228,7 +228,7 @@ module Amount =
       | One -> rate
       | AT ->
           match actor with
-          | Some actor -> actor |> Card.curAt |> float
+          | Some actor -> actor |> Card.curAt |> float |> (*) rate
           | None -> 0.0
     in value
 
