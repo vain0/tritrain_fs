@@ -202,6 +202,9 @@ module Card =
   let isAlive card =
     curHp card > 0
 
+  let isDead =
+    isAlive >> not
+
   let curAt card =
     card
     |> effects

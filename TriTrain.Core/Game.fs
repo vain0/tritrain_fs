@@ -119,7 +119,7 @@ module Game =
     let g         = g |> updateCard (target |> Card.setHp hp')
     let g         = g |> happen (CardHpInc (targetId, amount))
     let g =
-      if hp' = 0
+      if g |> card targetId |> Card.isDead
       then g |> dieCard targetId
       else g
     in g
