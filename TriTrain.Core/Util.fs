@@ -233,8 +233,8 @@ module Yaml =
       setDef
     ]
 
-  let customDump x =
-    Yaml.dumpWith customDefs x
+  let customDump<'t> x =
+    Yaml.dumpWith<'t> customDefs x
 
   let customTryLoad<'t> yaml =
     try
