@@ -58,6 +58,10 @@ module Game =
       g |> cardMap |> Map.add (card' |> Card.cardId) card'
     in { g with CardMap = cardMap' }
 
+  let happen ev g =
+    // TODO: notify the event
+    g
+
   let placeMap g: Map<Place, CardId> =
     PlayerId.all
     |> List.collect (fun plId ->
@@ -88,11 +92,13 @@ module Game =
           g
           |> updateBoard plId board'
           |> updateTrash plId trash'
+          |> happen (CardDie cardId)
 
   let incCardHp targetId amount g =
     let target    = g |> card targetId
     let hp'       = target |> Card.curHp |> (+) amount |> max 0 
     let g         = g |> updateCard { target with CurHP = hp' }
+    let g         = g |> happen (CardHpInc (targetId, amount))
     let g =
       if hp' = 0
       then g |> dieCard targetId
@@ -103,6 +109,7 @@ module Game =
     let target    = g |> card targetId
     let effs'     = keff :: (target |> Card.effects)
     let g         = g |> updateCard { target with Effects = effs' }
+    let g         = g |> happen (CardGainEffect (targetId, keff))
     in g
 
   let rec procOEffectToUnit actorOpt targetId oeffType g =
@@ -196,6 +203,7 @@ module Game =
           |> updateDeck plId deck'
           |> updateBoard plId
               (board |> Map.add vx cardId)
+          |> happen (CardEnter (cardId, (plId, vx)))
           // TODO: EtB能力が誘発
     in g
 
@@ -208,18 +216,25 @@ module Game =
   /// カードにかかっている継続的効果の経過ターン数を更新する
   let updateDuration cardId g =
     let card = g |> card cardId 
-    let effects =
+    let (effects', endEffects') =
       card
       |> Card.effects
-      |> List.choose (fun keff ->
+      |> List.map (fun keff ->
           match keff.Duration with
-          | None -> keff |> Some
+          | None -> (Some keff, None)
           | Some n ->
               if n <= 1
-              then None
-              else { keff with Duration = Some (n - 1) } |> Some
+              then (None, Some keff)
+              else ({ keff with Duration = Some (n - 1) } |> Some, None)
           )
-    let card' = { card with Effects = effects }
+      |> List.unzip
+    let card' = { card with Effects = effects' |> List.choose id }
+    let g =
+      endEffects'
+      |> List.choose id
+      |> List.fold (fun g keff ->
+          g |> happen (CardLoseEffect (cardId, keff))
+          ) g
     in g |> updateCard card'
   
   let updateDurationAll g =
@@ -229,9 +244,14 @@ module Game =
         g |> updateDuration cardId
         ) g
 
-  let rec procPhase ph g: Game * GameResult =
+  let endWith r g =
+    g |> happen (GameEnd r)
+
+  let rec procPhase ph g: Game =
     match ph with
     | SummonPhase ->
+        let g =
+          g |> happen TurnBegin
         let g =
           PlayerId.all
           |> List.fold (fun g plId -> g |> procSummonPhase plId) g
@@ -241,8 +261,8 @@ module Game =
           // 勝敗判定
           match PlayerId.all |> List.filter isLost with
           | []      -> g |> procPhase UpkeepPhase
-          | [plId]  -> (g, plId |> PlayerId.inverse |> Win)
-          | _       -> (g, Draw)
+          | [plId]  -> g |> endWith (plId |> PlayerId.inverse |> Win)
+          | _       -> g |> endWith Draw
 
     | UpkeepPhase ->
         // TODO: BoT能力が誘発
@@ -262,8 +282,12 @@ module Game =
         |> List.fold (fun g plId ->
             let (board', log) =
               g |> board plId |> Board.rotate
-            let g =  // TODO: 移動を通知
-              g |> updateBoard plId board'
+            let g = g |> updateBoard plId board'
+            let g =
+              // 移動を通知
+              log |> List.fold (fun g (cardId, v, v') ->
+                  g |> happen (CardMove (cardId, (plId, v), (plId, v')))
+                  ) g
             in g
             ) g
         |> procPhase PassPhase
@@ -274,9 +298,9 @@ module Game =
         in
           // ターン数更新
           match g |> turn with
-          | 20 -> (g, Draw)
+          | 20 -> g |> endWith Draw
           | t  -> { g with Turn = t + 1 } |> procPhase SummonPhase
 
   let run plLftSpec plRgtSpec =
     let g = create plLftSpec plRgtSpec
-    in g |> procPhase SummonPhase |> snd
+    in g |> procPhase SummonPhase
