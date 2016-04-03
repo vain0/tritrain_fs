@@ -21,7 +21,7 @@ module Game =
         CardMap     = cardMap
         Turn        = 0
         Triggered   = []
-        Events      = Observable.Source<GameEvent>()
+        Events      = Observable.Source<GameEvent * Game>()
       }
 
   let player plId g =
@@ -61,7 +61,7 @@ module Game =
     in { g with CardMap = cardMap' }
 
   let happen ev g =
-    g |> tap (fun g -> (g |> events).Next(ev))
+    g |> tap (fun g -> (g |> events).Next(ev, g))
 
   let placeMap g: Map<Place, CardId> =
     PlayerId.all
