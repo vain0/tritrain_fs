@@ -15,6 +15,12 @@ module Scope =
   let homeAll = ("自陣全体", AbsScope (set (Vertex.all), Set.empty))
   let oppoAll = ("敵陣全体", AbsScope (Set.empty, set (Vertex.all)))
 
+  let selfAndFwd =
+    ("自身と前列", UnionScope [self |> snd; homeFwd |> snd])
+
+  let selfAndRgt =
+    ("自身と右翼", UnionScope [self |> snd; homeRgt |> snd])
+
 module KEffect =
   let atInc amount duration =
     {
@@ -73,6 +79,9 @@ module OEffect =
       ("送風"         , give (agInc (AT, 0.30) 2) homeFwd)
       ("旋風"         , give (agInc (AT, 0.15) 2) homeBwd)
       ("天翔"         , give (agInc (AT, 0.10) 2) homeAll)
+
+      ("仁王立ち"     , Swap selfAndFwd)
+      ("退避"         , Swap selfAndRgt)
 
       ( "太陽破"
       , pair (sacrifice homeFwd) (attack 0.50 oppoAll) )

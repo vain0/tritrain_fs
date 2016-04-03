@@ -154,17 +154,44 @@ module Game =
     | Give keff ->
         g |> giveKEffectTo targetId keff
 
+  /// moves: (移動するカードのID, 元の位置, 後の位置) の列
+  /// 移動後の盤面の整合性は、利用側が担保すること。
+  let moveCards (moves: list<CardId * Place * Place>) g =
+    let g =
+      moves |> List.fold (fun g (cardId, (plId, vx), _) ->
+          g |> updateBoard plId  (g |> board plId  |> Map.remove vx)
+          ) g
+    let g =
+      moves |> List.fold (fun g (cardId, _, (plId', vx')) ->
+          g |> updateBoard plId' (g |> board plId' |> Map.add vx' cardId)
+          ) g
+    in g |> happen (CardMove moves)
+
+  let swapCards r1 r2 g =
+    let placeMap = g |> placeMap
+    let opt1 = placeMap |> Map.tryFind r1
+    let opt2 = placeMap |> Map.tryFind r2
+    let g =
+      match (opt1, opt2) with
+      | (Some cardId1, Some cardId2)->
+          g |> moveCards
+            [ (cardId1, r1, r2)
+              (cardId2, r2, r1) ]
+      | _ -> g
+    in g
+
   let rec procOEffect actorOpt (source: Place) oeff g =
     match oeff with
     | OEffectList oeffs ->
         oeffs |> List.fold (flip (procOEffect actorOpt source)) g
     | GenToken cardSpecs ->
         g // TODO: トークン生成
+
     | Swap (_, scope) ->
         match scope |> Scope.placeSet source |> Set.toList with
-        | [r1; r2] ->
-            g // TODO: 交代
+        | [r1; r2] -> g |> swapCards r1 r2
         | _ -> g
+
     | OEffectToUnits (typ, (_, scope)) ->
         let targets =
           scope |> Scope.placeSet source
@@ -300,15 +327,14 @@ module Game =
     | RotatePhase ->
         PlayerId.all
         |> List.fold (fun g plId ->
-            let (board', log) =
-              g |> board plId |> Board.rotate
-            let g = g |> updateBoard plId board'
-            let g =
-              // 移動を通知
-              log |> List.fold (fun g (cardId, v, v') ->
-                  g |> happen (CardMove (cardId, (plId, v), (plId, v')))
-                  ) g
-            in g
+            let moves =
+              g
+              |> board plId
+              |> Board.rotate
+              |> List.map (fun (cardId, vx, vx') ->
+                  (cardId, (plId, vx), (plId, vx'))
+                  )
+            in g |> moveCards moves
             ) g
         |> procPhase PassPhase
 

@@ -190,7 +190,7 @@ module Types =
     | CardDie             of CardId
     | CardGainEffect      of CardId * KEffect
     | CardLoseEffect      of CardId * KEffect
-    | CardMove            of CardId * src: Place * dst: Place
+    | CardMove            of list<CardId * (* src: *) Place * (* dst: *) Place>
 
   type Game =
     {
