@@ -202,8 +202,10 @@ module Game =
     let g =
       match skillOpt with
       | None -> g
-      | Some (_, oeff) ->
-          g |> procOEffect (Some actor) (actorId |> CardId.owner, vx) oeff
+      | Some ((_, oeff) as noeff) ->
+          g
+          |> happen (CardActBegin (actorId, noeff))
+          |> procOEffect (Some actor) (actorId |> CardId.owner, vx) oeff
     in g
 
   /// プレイヤー plId が位置 vx にデッキトップを召喚する。

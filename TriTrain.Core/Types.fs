@@ -185,6 +185,7 @@ module Types =
     | GameEnd             of GameResult
     | TurnBegin
     | CardEnter           of CardId * Place
+    | CardActBegin        of CardId * NamedOEffect
     | CardHpInc           of CardId * amount: int
     | CardDie             of CardId
     | CardGainEffect      of CardId * KEffect
