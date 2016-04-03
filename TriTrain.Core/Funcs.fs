@@ -65,6 +65,8 @@ module ScopeSide =
     [Home; Oppo; Both]
 
 module Scope =
+  let name ((name, _): NamedScope) = name
+
   /// plId からみた side 側のリスト
   let sides plId side =
     match side with
@@ -138,6 +140,8 @@ module KEffect =
   let duration    (keff: KEffect) = keff.Duration
 
 module OEffect =
+  let name ((name, _): NamedOEffect) = name
+
   let rec toList oeff =
     match oeff with
     | OEffectList oeffs -> oeffs |> List.collect toList

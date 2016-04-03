@@ -48,6 +48,11 @@ module Types =
     | FrontEnemy
     | UnionScope    of list<Scope>
 
+  type ScopeName = string
+
+  type NamedScope =
+    ScopeName * Scope
+
   /// 変量
   type VarType =
     | One
@@ -83,9 +88,12 @@ module Types =
   type OEffect =
     | OEffectList   of list<OEffect>
     | OEffectToUnits
-      of OEffectToUnitType * Scope
-    | Swap          of Scope
+      of OEffectToUnitType * NamedScope
+    | Swap          of NamedScope
     | GenToken      of list<CardSpec>
+
+  and NamedOEffect =
+    string * OEffect
 
   and TriggerCond =
     /// At the beginning of each turn
@@ -98,7 +106,7 @@ module Types =
   and Ability =
     {
       Cond          : TriggerCond
-      Effect        : OEffect
+      Effect        : NamedOEffect
     }
 
   and Status =
@@ -114,7 +122,7 @@ module Types =
       Status        : Status
       Elem          : Elem
       Abils         : list<Ability>
-      Skills        : Map<Row, OEffect>
+      Skills        : Map<Row, NamedOEffect>
     }
 
   type CardId =
