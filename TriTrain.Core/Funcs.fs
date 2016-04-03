@@ -193,6 +193,9 @@ module Card =
   let maxHp =
     spec >> CardSpec.status >> Status.hp
 
+  let isAlive card =
+    curHp card > 0
+
   let curAt card =
     card
     |> effects
@@ -223,6 +226,23 @@ module Card =
       AT = card |> curAt
       AG = card |> curAg
     }
+
+  /// 再生効果を適用する
+  let regenerate card =
+    let (regenValues, effects') =
+      card
+      |> effects
+      |> List.paritionMap
+          (function
+          | { Type = (Regenerate (One, value)) } -> Some value
+          | _ -> None
+          )
+    let card =
+      { card with
+          CurHP     = regenValues |> List.sum |> int |> max 0
+          Effects   = effects'
+      }
+    in card
 
 module Amount =
   /// 変量を決定する

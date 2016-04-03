@@ -69,6 +69,7 @@ module Types =
   type KEffectType =
     | ATInc         of Amount
     | AGInc         of Amount
+    | Regenerate    of Amount  /// 変量は対象者のもの
 
   /// 継続的効果 (Continuous Effect)
   type KEffect =
@@ -188,6 +189,7 @@ module Types =
     | CardEnter           of CardId * Place
     | CardActBegin        of CardId * NamedOEffect
     | CardHpInc           of CardId * amount: int
+    | CardRegenerated     of CardId * amount: int
     | CardDie             of CardId
     | CardGainEffect      of CardId * KEffect
     | CardLoseEffect      of CardId * KEffect
