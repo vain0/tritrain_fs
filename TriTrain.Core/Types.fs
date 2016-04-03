@@ -47,6 +47,7 @@ module Types =
     | Self
     | FrontEnemy
     | UnionScope    of list<Scope>
+    | DiffScope     of Scope * Scope
 
   type ScopeName = string
 
