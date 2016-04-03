@@ -113,6 +113,7 @@
     </Content>
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
+    <Compile Include="Util.fs" />
     <Compile Include="Broadcaster.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
