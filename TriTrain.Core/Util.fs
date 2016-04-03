@@ -86,3 +86,89 @@ module Random =
   let roll (prob: float) =
     rng.NextDouble() < prob
     || prob >= 100.0
+
+[<RequireQualifiedAccess>]
+module Observable =
+  open System.Diagnostics
+
+  let indexed obs =
+    obs
+    |> Observable.scan
+        (fun (opt, i) x -> (Some x, i + 1)) (None, -1)
+    |> Observable.choose
+        (fun (opt, i) -> opt |> Option.map (fun x -> (x, i)))
+
+  let duplicateFirst obs =
+    let obs' =
+      obs
+      |> indexed
+      |> Observable.choose
+          (fun (x, i) -> if i = 0 then Some x else None)
+    in Observable.merge obs obs'
+
+  type Source<'t>() =
+    let protect f =
+      let mutable ok = false
+      try 
+        f ()
+        ok <- true
+      finally
+        Debug.Assert(ok, "IObserver method threw an exception.")
+
+    let mutable key = 0
+    let mutable subscriptions = (Map.empty: Map<int, IObserver<'t>>)
+
+    let thisLock = new obj()
+
+    let subscribe obs =
+      let body () =
+        key |> tap (fun k ->
+          do key <- k + 1
+          do subscriptions <- subscriptions |> Map.add k obs
+          )
+      in lock thisLock body
+
+    let unsubscribe k =
+      let body () =
+        subscriptions <- subscriptions |> Map.remove k
+      in
+        lock thisLock body
+
+    let next obs =
+      subscriptions |> Map.iter (fun _ value ->
+        protect (fun () -> value.OnNext(obs)))
+
+    let completed () =
+      subscriptions |> Map.iter (fun _ value ->
+        protect (fun () -> value.OnCompleted()))
+
+    let error err =
+      subscriptions |> Map.iter (fun _ value ->
+        protect (fun () -> value.OnError(err)))
+
+    let obs = 
+      { new IObservable<'T> with
+          member this.Subscribe(obs) =
+            let cancelKey = subscribe obs
+            { new IDisposable with 
+                member this.Dispose() = unsubscribe cancelKey
+                }
+          }
+
+    let mutable finished = false
+
+    member this.Next(obs) =
+      Debug.Assert(not finished, "IObserver is already finished")
+      next obs
+
+    member this.Completed() =
+      Debug.Assert(not finished, "IObserver is already finished")
+      finished <- true
+      completed()
+
+    member this.Error(err) =
+      Debug.Assert(not finished, "IObserver is already finished")
+      finished <- true
+      error err
+
+    member this.AsObservable = obs

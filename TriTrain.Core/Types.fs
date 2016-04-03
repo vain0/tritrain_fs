@@ -167,9 +167,14 @@ module Types =
 
   type GameEvent =
     | GameBegin
-    | GameEnd       of GameResult
-    | TurnBegin     of int
-    | TurnEnd       of int
+    | GameEnd             of GameResult
+    | TurnBegin
+    | CardEnter           of CardId * Place
+    | CardHpInc           of CardId * amount: int
+    | CardDie             of CardId
+    | CardGainEffect      of CardId * KEffect
+    | CardLoseEffect      of CardId * KEffect
+    | CardMove            of CardId * src: Place * dst: Place
 
   type Game =
     {
@@ -180,4 +185,6 @@ module Types =
 
       /// 誘発し、まだ処理されていない誘発型能力
       Triggered     : list<OEffect>
+
+      Events        : Observable.Source<GameEvent>
     }
