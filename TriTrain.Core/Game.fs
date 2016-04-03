@@ -116,7 +116,18 @@ module Game =
   let rec procOEffectToUnit actorOpt targetId oeffType g =
     match oeffType with
     | Damage amount ->
-        let amount = amount |> Amount.resolve actorOpt |> int |> max 0
+        let target = g |> card targetId
+        let coeffByElem =
+          match actorOpt with
+          | Some actor ->
+              Elem.coeff (actor |> Card.elem) (target |> Card.elem)
+          | None -> 1.0
+        let amount =
+          amount
+          |> Amount.resolve actorOpt
+          |> (*) coeffByElem
+          |> int
+          |> max 0
         in g |> incCardHp targetId (- amount)
 
     | Heal amount ->
