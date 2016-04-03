@@ -28,23 +28,12 @@ module Program =
     let _ = g |> Game.run
     in ()
 
-  let showErrorMessages r =
-    let eprintAll = List.iter (eprintfn "%s")
-    match r with
-    | Pass _ -> ()
-    | Warn (_, msgs) ->
-        eprintfn "Warning:"
-        eprintAll msgs
-    | Fail msgs ->
-        eprintfn "Fatal error:"
-        eprintAll msgs
-
   let testPlay () =
     trial {
       let! (pl1, pl2) = loadDefaultPlayers
       do runGameWithBroadcaster (pl1, pl2)
     }
-    |> showErrorMessages
+    |> Trial.eprintMessages
 
   [<EntryPoint>]
   let main argv =
