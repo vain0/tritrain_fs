@@ -34,6 +34,12 @@ module KEffect =
       Duration    = Some duration
     }
 
+  let regenerate rate duration =
+    {
+      Type        = Regenerate (MaxHP, rate)
+      Duration    = Some duration
+    }
+
 module OEffect =
   open Scope
   open KEffect
@@ -82,6 +88,8 @@ module OEffect =
 
       ("仁王立ち"     , Swap selfAndFwd)
       ("退避"         , Swap selfAndRgt)
+
+      ("転生印"       , give (regenerate 0.50 1) homeFwd)
 
       ( "太陽破"
       , pair (sacrifice homeFwd) (attack 0.50 oppoAll) )
