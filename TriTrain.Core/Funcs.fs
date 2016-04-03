@@ -182,6 +182,9 @@ module Card =
   let owner =
     cardId >> CardId.owner
 
+  let name =
+    spec >> CardSpec.name
+
   let elem =
     spec >> CardSpec.elem
 
@@ -208,6 +211,13 @@ module Card =
     |> List.sum
     |> (+) (card |> spec |> CardSpec.status |> Status.ag |> float)
     |> int
+
+  let curStatus card =
+    {
+      HP = card |> curHp 
+      AT = card |> curAt
+      AG = card |> curAg
+    }
 
 module Amount =
   /// 変量を決定する
@@ -286,3 +296,6 @@ module Player =
         Trash         = Set.empty
       }
     in (pl, deck')
+
+  let name =
+    spec >> PlayerSpec.name
