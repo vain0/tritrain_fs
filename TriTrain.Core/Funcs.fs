@@ -182,6 +182,9 @@ module Card =
   let owner =
     cardId >> CardId.owner
 
+  let name =
+    spec >> CardSpec.name
+
   let elem =
     spec >> CardSpec.elem
 
