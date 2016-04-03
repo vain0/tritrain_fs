@@ -95,6 +95,31 @@ module String =
       s |> String.forall acceptableChar
     in body
 
+module Reflection =
+  open Microsoft.FSharp.Reflection
+
+  type DU<'t>() =
+    static member val CaseInfos =
+      FSharpType.GetUnionCases(typeof<'t>)
+      |> Array.toList
+
+    static member val Names =
+      DU<'t>.CaseInfos
+      |> List.map (fun (case: UnionCaseInfo) -> case.Name)
+
+    static member val UnitCases =
+      DU<'t>.CaseInfos
+      |> List.choose (fun ci ->
+          if ci.GetFields().Length = 0
+          then Some (FSharpValue.MakeUnion(ci, Array.empty) :?> 't)
+          else None
+          )
+
+    static member TryParse(str) =
+      DU<'t>.CaseInfos
+      |> List.tryFind (fun case -> case.Name = str)
+      |> Option.map (fun case -> FSharpValue.MakeUnion (case, [||]) :?> 't)
+
 [<RequireQualifiedAccess>]
 module Random =
   let rng = Random()
