@@ -38,10 +38,10 @@ module CardSpec =
         |> CardSpec.skills
         |> Map.valueSet
         |> Set.toList
-        |> List.collect (fun (_, oeff) -> oeff |> OEffect.toList)
+        |> List.map snd // discard names
       if skills |> List.forall (OEffect.isPreset) |> not then
         return! fail "Card may have only preset effects."
-      if skills |> List.length > 4 then
+      if skills |> List.collect OEffect.toPresetList |> List.length > 4 then
         return! fail "A card may have up to 4 effects."
     }
 

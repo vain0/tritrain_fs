@@ -106,5 +106,23 @@ module OEffect =
       |> List.map (fun (_, (_, oeff)) -> oeff)
       |> Set.ofList
     let body oeff =
-      oeffSet |> Set.contains oeff
+      let b1 =
+        oeffSet |> Set.contains oeff
+      let b2 =
+        match oeff with
+        | OEffectList oeffs ->
+            (oeffs |> List.forall (fun oeff -> oeffSet |> Set.contains oeff))
+        | _ -> false
+      in b1 || b2
     in body
+
+  /// 効果 oeff を構成する部分効果のうち、プリセットであるもののリスト
+  /// プリセットでないものが含まれているなら、それらは無視される。
+  let rec toPresetList oeff: list<OEffect> =
+    if oeff |> isPreset
+    then
+      [oeff]
+    else
+      match oeff with
+      | OEffectList oeffs -> oeffs |> List.collect toPresetList
+      | _ -> []
