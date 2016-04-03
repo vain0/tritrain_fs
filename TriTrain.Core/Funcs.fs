@@ -269,6 +269,8 @@ module Amount =
           | None -> 0.0
     in value * rate
 
+  /// 継続的効果の変量を固定する。
+  /// 事後: 含まれる Amount はすべて (One, _) である。
   let resolveKEffect actorOpt target keff =
     match keff |> KEffect.typ with
     | ATInc amount ->
@@ -278,6 +280,22 @@ module Amount =
     | Regenerate amount ->
         // 対象者の最大HPに依存する
         { keff with Type = Regenerate (One, amount |> resolve (Some target)) }
+
+  /// 単発的効果の変量を固定する。
+  /// 事後: 含まれる Amount はすべて (One, _) である。
+  let resolveOEffectToUnit actorOpt target oeffType =
+    match oeffType with
+    | Damage amount ->
+        let amount = amount |> resolve actorOpt
+        in Damage (One, amount)
+    | Heal amount ->
+        let amount = amount |> resolve actorOpt
+        in Heal (One, amount)
+    | Death  amount ->
+        let amount = amount |> resolve actorOpt
+        in Death (One, amount)
+    | Give keff ->
+        keff |> resolveKEffect actorOpt target |> Give
 
 module DeckSpec =
   let name        (spec: DeckSpec) = spec.Name
