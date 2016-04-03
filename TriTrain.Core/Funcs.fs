@@ -234,7 +234,7 @@ module Card =
     }
 
   let setHp hp card =
-    let hp = hp |> max 0
+    let hp = hp |> max 0 |> min (card |> maxHp) 
     in { card with CurHP = hp }
 
   /// 再生効果を適用する
