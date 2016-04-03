@@ -314,5 +314,6 @@ module Game =
           | t  -> { g with Turn = t + 1 } |> procPhase SummonPhase
 
   let run plLftSpec plRgtSpec =
-    let g = create plLftSpec plRgtSpec
-    in g |> procPhase SummonPhase
+    create plLftSpec plRgtSpec
+    |> happen GameBegin
+    |> procPhase SummonPhase
