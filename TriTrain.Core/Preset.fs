@@ -83,3 +83,6 @@ module OEffect =
         (give (agInc (AT, 0.05) 2) homeAll)
     ]
     |> Set.ofList
+
+  let isPreset oeff =
+    preset |> Set.contains oeff
