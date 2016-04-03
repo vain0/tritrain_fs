@@ -190,6 +190,9 @@ module Card =
   let elem =
     spec >> CardSpec.elem
 
+  let maxHp =
+    spec >> CardSpec.status >> Status.hp
+
   let curAt card =
     card
     |> effects
@@ -228,6 +231,10 @@ module Amount =
     let value =
       match amount |> fst with
       | One -> rate
+      | MaxHP ->
+          match actor with
+          | Some actor -> actor |> Card.maxHp |> float |> (*) rate
+          | None -> 0.0
       | AT ->
           match actor with
           | Some actor -> actor |> Card.curAt |> float |> (*) rate

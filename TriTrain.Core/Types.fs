@@ -56,6 +56,7 @@ module Types =
   /// 変量
   type VarType =
     | One
+    | MaxHP
     | AT
 
   type Amount =
