@@ -4,6 +4,14 @@ open System
 open TriTrain.Core
 
 module Broadcaster =
+  let colorFromPlayerId =
+    function
+    | PlLft -> ConsoleColor.Green
+    | PlRgt -> ConsoleColor.Red
+
+  let cprintf  plId = Console.mcprintf  id (plId |> colorFromPlayerId)
+  let cprintfn plId = Console.mcprintfn id (plId |> colorFromPlayerId)
+
   let stringizeSide =
     function
     | PlLft -> "左陣"
@@ -24,32 +32,39 @@ module Broadcaster =
     let card    = g |> Game.card cardId
     let name    = card |> Card.name
     let st      = card |> Card.curStatus
+    let owner   = cardId |> CardId.owner
     in
       match g |> Game.searchBoardFor cardId with
       | Some place ->
-          printf "%s%s[%d/%d/%d]"
+          cprintf owner
+            "%s%s[%d/%d/%d]"
             name
             (stringizePlace place)
             (st |> Status.hp)
             (st |> Status.at)
             (st |> Status.ag)
       | None ->
-          printf "《%s》"  name
+          cprintf owner
+            "《%s》" name
+
+  let printPlayerName g plId =
+    cprintf plId "%s" (g |> Game.player plId |> Player.name)
 
   let printEvent (ev, g, g') =
     match ev with
     | GameBegin ->
         printfn "-------- Game Begin --------"
-        printfn "%s vs %s"
-          (g |> Game.plLft |> Player.name)
-          (g |> Game.plRgt |> Player.name)
+        printPlayerName g' PlLft
+        printf " vs "
+        printPlayerName g' PlRgt
+        printfn ""
 
     | GameEnd Draw ->
         printfn "Draw game."
 
     | GameEnd (Win plId) ->
-        printfn "%s win!"
-          (g' |> Game.player plId |> Player.name)
+        printPlayerName g' plId
+        printfn " won!"
 
     | TurnBegin ->
         printfn "---- Turn %d ----"
