@@ -289,3 +289,6 @@ module Player =
         Trash         = Set.empty
       }
     in (pl, deck')
+
+  let name =
+    spec >> PlayerSpec.name
