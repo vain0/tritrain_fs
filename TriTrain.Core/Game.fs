@@ -21,8 +21,14 @@ module Game =
         CardMap     = cardMap
         Turn        = 0
         Triggered   = []
-        Events      = Observable.Source<GameEvent>()
+        Events      = Observable.Source<GameEvent * Game>()
       }
+
+  let asObservable g =
+    (g |> events).AsObservable
+    |> Observable.duplicateFirst
+    |> Observable.pairwise
+    |> Observable.map (fun ((_, g), (ev, g')) -> (ev, g, g'))
 
   let player plId g =
     match plId with
@@ -61,7 +67,7 @@ module Game =
     in { g with CardMap = cardMap' }
 
   let happen ev g =
-    g |> tap (fun g -> (g |> events).Next(ev))
+    g |> tap (fun g -> (g |> events).Next(ev, g))
 
   let placeMap g: Map<Place, CardId> =
     PlayerId.all
@@ -313,6 +319,7 @@ module Game =
           | 20 -> g |> endWith Draw
           | t  -> { g with Turn = t + 1 } |> procPhase SummonPhase
 
-  let run plLftSpec plRgtSpec =
-    let g = create plLftSpec plRgtSpec
-    in g |> procPhase SummonPhase
+  let run g: Game =
+    g
+    |> happen GameBegin
+    |> procPhase SummonPhase

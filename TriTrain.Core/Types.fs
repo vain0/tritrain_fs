@@ -193,5 +193,5 @@ module Types =
       /// 誘発し、まだ処理されていない誘発型能力
       Triggered     : list<OEffect>
 
-      Events        : Observable.Source<GameEvent>
+      Events        : Observable.Source<GameEvent * Game>
     }
