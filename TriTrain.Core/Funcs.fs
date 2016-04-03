@@ -36,10 +36,10 @@ module Elem =
 
   let isStrongTo src tar =
     match (src, tar) with
-    | (Air  , Fire )
-    | (Fire , Water)
-    | (Water, Earth)
-    | (Earth, Air  ) -> true
+    | (Air  , Earth)
+    | (Earth, Water)
+    | (Water, Fire )
+    | (Fire , Air  ) -> true
     | _ -> false
 
   /// 属性 src が属性 tar を攻撃するときにかかる係数
