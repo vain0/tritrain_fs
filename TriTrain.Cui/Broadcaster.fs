@@ -78,8 +78,8 @@ module Broadcaster =
         printfn " died."
 
     | CardGainEffect (cardId, keff) ->
-        printCardName g' cardId
-        printfn " gained %A."  // TODO: 分かりやすく表示する
+        printCardName g cardId      // 獲得前の状態を表示
+        printfn " gains %A."        // TODO: 分かりやすく表示する
           keff
 
     | CardLoseEffect (cardId, keff) ->
