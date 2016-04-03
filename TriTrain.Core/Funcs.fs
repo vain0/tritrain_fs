@@ -119,10 +119,22 @@ module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration
 
+module OEffect =
+  let rec toList oeff =
+    match oeff with
+    | OEffectList oeffs -> oeffs |> List.collect toList
+    | _ -> [oeff]
+
 module Status =
   let hp (st: Status) = st.HP
   let at (st: Status) = st.AT
   let ag (st: Status) = st.AG
+
+  let toList st =
+    [ st |> hp; st |> at; st |> ag ]
+
+  let total st =
+    st |> toList |> List.sum
 
 module CardSpec =
   let name        (spec: CardSpec) = spec.Name
@@ -184,6 +196,10 @@ module Amount =
           | None -> 0.0
     in value
 
+module DeckSpec =
+  let name        (spec: DeckSpec) = spec.Name
+  let cards       (spec: DeckSpec) = spec.Cards
+
 module Deck =
   let create (spec) (plId) =
     spec
@@ -234,7 +250,7 @@ module Player =
 
   let create spec plId =
     let deck' =
-      Deck.create (spec |> PlayerSpec.deck) plId
+      Deck.create (spec |> PlayerSpec.deck |> DeckSpec.cards) plId
     let pl =
       {
         PlayerId      = plId

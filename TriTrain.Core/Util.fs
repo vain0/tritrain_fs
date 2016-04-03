@@ -8,6 +8,9 @@ module Misc =
 
   let flip f x y = f y x
 
+  let isInInterval l r x =
+    l <= x && x < r
+
   type T3<'t> = 't * 't * 't
   type T7<'t> = 't * 't * 't * 't * 't * 't * 't
 
@@ -78,6 +81,18 @@ module Map =
         if v = value then Some k else None
         )
     |> Set.ofList
+
+[<RequireQualifiedAccess>]
+module String =
+  let isNamey =
+    let acceptableChar ch =
+      Char.IsLetter(ch)
+      || Char.IsDigit(ch)
+      || Char.IsWhiteSpace(ch)
+      || (ch = '_')
+    let body s =
+      s |> String.forall acceptableChar
+    in body
 
 [<RequireQualifiedAccess>]
 module Random =

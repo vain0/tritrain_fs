@@ -124,7 +124,10 @@ module Types =
     }
 
   type DeckSpec =
-    T7<CardSpec>
+    {
+      Name          : string
+      Cards         : T7<CardSpec>
+    }
 
   type Deck =
     list<CardId>
