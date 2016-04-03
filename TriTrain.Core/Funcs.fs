@@ -124,6 +124,12 @@ module Status =
   let at (st: Status) = st.AT
   let ag (st: Status) = st.AG
 
+  let toList st =
+    [ st |> hp; st |> at; st |> ag ]
+
+  let total st =
+    st |> toList |> List.sum
+
 module CardSpec =
   let name        (spec: CardSpec) = spec.Name
   let status      (spec: CardSpec) = spec.Status

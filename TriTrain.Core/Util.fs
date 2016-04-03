@@ -8,6 +8,9 @@ module Misc =
 
   let flip f x y = f y x
 
+  let isInInterval l r x =
+    l <= x && x < r
+
   type T3<'t> = 't * 't * 't
   type T7<'t> = 't * 't * 't * 't * 't * 't * 't
 
