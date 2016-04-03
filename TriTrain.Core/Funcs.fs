@@ -1,5 +1,7 @@
 ﻿namespace TriTrain.Core
 
+open Reflection
+
 module Id =
   let create =
     let r = ref 0
@@ -11,7 +13,7 @@ module Id =
 
 module PlayerId =
   let all =
-    [PlLft; PlRgt]
+    DU<PlayerId>.UnitCases
 
   let inverse =
     function
@@ -30,7 +32,7 @@ module CardId =
 
 module Elem =
   let all =
-    [Air; Fire; Water; Earth]
+    DU<Elem>.UnitCases
 
   let isStrongTo src tar =
     match (src, tar) with
@@ -48,11 +50,11 @@ module Elem =
 
 module Vertex =
   let all =
-    [Fwd; Lft; Rgt]
+    DU<Vertex>.UnitCases
 
 module Row =
   let all =
-    [FwdRow; BwdRow]
+    DU<Row>.UnitCases
 
   let ofVertex =
     function
@@ -62,7 +64,7 @@ module Row =
 
 module ScopeSide =
   let all =
-    [Home; Oppo; Both]
+    DU<ScopeSide>.UnitCases
 
 module Scope =
   let name ((name, _): NamedScope) = name
@@ -228,7 +230,7 @@ module Amount =
       | One -> rate
       | AT ->
           match actor with
-          | Some actor -> actor |> Card.curAt |> float
+          | Some actor -> actor |> Card.curAt |> float |> (*) rate
           | None -> 0.0
     in value
 

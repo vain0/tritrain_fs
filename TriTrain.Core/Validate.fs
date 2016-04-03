@@ -12,10 +12,10 @@ module Status =
         return! fail "HP must be positive."
       if status |> Status.at < 0 then
         return! fail "AT mustn't be negative."
-      if status |> Status.ag |> isInInterval 0 51 |> not then
-        return! fail "AG must be in range 0-50."
-      if status |> Status.total > 300 then
-        return! fail "Status total mustn't over 300."
+      if status |> Status.ag |> isInInterval 0 (MaxDefaultAG + 1) |> not then
+        return! fail (sprintf "AG must be in range 0-%d." MaxDefaultAG)
+      if status |> Status.total > StatusTotal then
+        return! fail (sprintf "Status total mustn't over %d." StatusTotal)
     }
 
 module CardSpec =
@@ -38,10 +38,10 @@ module CardSpec =
         |> CardSpec.skills
         |> Map.valueSet
         |> Set.toList
-        |> List.collect (fun (_, oeff) -> oeff |> OEffect.toList)
+        |> List.map snd // discard names
       if skills |> List.forall (OEffect.isPreset) |> not then
         return! fail "Card may have only preset effects."
-      if skills |> List.length > 4 then
+      if skills |> List.collect OEffect.toPresetList |> List.length > 4 then
         return! fail "A card may have up to 4 effects."
     }
 

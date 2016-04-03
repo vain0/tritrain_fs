@@ -204,3 +204,33 @@ module Types =
 
       Events        : Observable.Source<GameEvent * Game>
     }
+
+  type AbilitySrc =
+    {
+      Cond          : string
+      Effect        : string
+    }
+
+  /// ユーザが記述するカード仕様
+  type CardSpecSrc =
+    {
+      Name          : CardName
+      AT            : int
+      AG            : int
+      Elem          : string
+      Abils         : list<AbilitySrc>
+      SkillFwd      : list<string>
+      SkillBwd      : list<string>
+    }
+
+  type DeckSpecSrc =
+    {
+      Name          : string
+      Cards         : T7<CardSpecSrc>
+    }
+
+  [<Literal>]
+  let StatusTotal = 300
+
+  [<Literal>]
+  let MaxDefaultAG = 50

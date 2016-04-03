@@ -1,6 +1,7 @@
 ﻿namespace TriTrain.Core
 
 open System
+open Chessie.ErrorHandling
 
 [<AutoOpen>]
 module Misc =
@@ -82,6 +83,13 @@ module Map =
         )
     |> Set.ofList
 
+  let choose f m =
+    m |> Map.fold (fun m k v ->
+        match f k v with
+        | None      -> m
+        | Some v'   -> m |> Map.add k v'
+        ) Map.empty
+
 [<RequireQualifiedAccess>]
 module String =
   let isNamey =
@@ -93,6 +101,31 @@ module String =
     let body s =
       s |> String.forall acceptableChar
     in body
+
+module Reflection =
+  open Microsoft.FSharp.Reflection
+
+  type DU<'t>() =
+    static member val CaseInfos =
+      FSharpType.GetUnionCases(typeof<'t>)
+      |> Array.toList
+
+    static member val Names =
+      DU<'t>.CaseInfos
+      |> List.map (fun (case: UnionCaseInfo) -> case.Name)
+
+    static member val UnitCases =
+      DU<'t>.CaseInfos
+      |> List.choose (fun ci ->
+          if ci.GetFields().Length = 0
+          then Some (FSharpValue.MakeUnion(ci, Array.empty) :?> 't)
+          else None
+          )
+
+    static member TryParse(str) =
+      DU<'t>.CaseInfos
+      |> List.tryFind (fun case -> case.Name = str)
+      |> Option.map (fun case -> FSharpValue.MakeUnion (case, [||]) :?> 't)
 
 [<RequireQualifiedAccess>]
 module Random =
@@ -188,6 +221,18 @@ module Observable =
 
     member this.AsObservable = obs
 
+module Trial =
+  let eprintMessages r =
+    let eprintAll = List.iter (eprintfn "%s")
+    match r with
+    | Pass _ -> ()
+    | Warn (_, msgs) ->
+        eprintfn "Warning:"
+        eprintAll msgs
+    | Fail msgs ->
+        eprintfn "Fatal error:"
+        eprintAll msgs
+
 module ObjectElementSeq =
   open System
   open System.Linq
@@ -232,8 +277,12 @@ module Yaml =
       setDef
     ]
 
-  let customDump x =
-    Yaml.dumpWith customDefs x
+  let customDump<'t> x =
+    Yaml.dumpWith<'t> customDefs x
 
-  let customTryLoad<'t> =
-    Yaml.tryLoadWith<'t> customDefs
+  let customTryLoad<'t> yaml =
+    try
+      Yaml.loadWith<'t> customDefs yaml
+      |> pass
+    with
+    | e -> e |> fail

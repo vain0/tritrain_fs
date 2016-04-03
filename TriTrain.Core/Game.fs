@@ -112,12 +112,23 @@ module Game =
       else g
     in g
 
-  let giveKEffectTo targetId keff g =
+  let giveKEffectImpl targetId keff g =
     let target    = g |> card targetId
     let effs'     = keff :: (target |> Card.effects)
     let g         = g |> updateCard { target with Effects = effs' }
     let g         = g |> happen (CardGainEffect (targetId, keff))
     in g
+
+  let giveKEffect actorOpt targetId keff g =
+    match keff |> KEffect.typ with
+    | ATInc amount ->
+        let amount'   = (One, amount |> Amount.resolve actorOpt)
+        let keff'     = { keff with Type = ATInc amount' }
+        in g |> giveKEffectImpl targetId keff'
+    | AGInc amount ->
+        let amount'   = (One, amount |> Amount.resolve actorOpt)
+        let keff'     = { keff with Type = AGInc amount' }
+        in g |> giveKEffectImpl targetId keff'
 
   let rec procOEffectToUnit actorOpt targetId oeffType g =
     match oeffType with
@@ -152,7 +163,7 @@ module Game =
         in g
 
     | Give keff ->
-        g |> giveKEffectTo targetId keff
+        g |> giveKEffect actorOpt targetId keff
 
   /// moves: (移動するカードのID, 元の位置, 後の位置) の列
   /// 移動後の盤面の整合性は、利用側が担保すること。
