@@ -52,39 +52,50 @@ module OEffect =
 
   let preset =
     [
-      attack 0.70 oppoFwd
-      attack 0.30 oppoBwd
-      attack 0.60 oppoRgt
-      attack 0.20 oppoAll
+      ("通常攻撃"     , attack 0.70 oppoFwd)
+      ("後列薙ぎ"     , attack 0.30 oppoBwd)
+      ("右翼の狙撃"   , attack 0.60 oppoRgt)
+      ("全体攻撃"     , attack 0.20 oppoAll)
 
-      death 0.30 oppoFwd
-      death 0.10 oppoAll
+      ("ザキ"         , death 0.30 oppoFwd)
+      ("ザラキ"       , death 0.10 oppoAll)
 
-      heal 0.70 self
-      heal 0.70 homeFwd
-      heal 0.20 homeAll
+      ("自己回復"     , heal 0.70 self)
+      ("前列回復"     , heal 0.70 homeFwd)
+      ("全体回復"     , heal 0.20 homeAll)
 
-      give (atInc (AT, 0.30) 2) self
-      give (atInc (AT, 0.60) 1) homeFwd
-      give (atInc (AT, 0.30) 2) homeFwd
-      give (atInc (AT, 0.10) 2) homeAll
+      ("習熟"         , give (atInc (AT, 0.30) 2) self)
+      ("協力"         , give (atInc (AT, 0.60) 1) homeFwd)
+      ("支援"         , give (atInc (AT, 0.30) 2) homeFwd)
+      ("鼓舞"         , give (atInc (AT, 0.10) 2) homeAll)
 
-      give (agInc (AT, 0.30) 2) self
-      give (agInc (AT, 0.30) 2) homeFwd
-      give (agInc (AT, 0.15) 2) homeBwd
-      give (agInc (AT, 0.10) 2) homeAll
+      ("飛翔"         , give (agInc (AT, 0.30) 2) self)
+      ("送風"         , give (agInc (AT, 0.30) 2) homeFwd)
+      ("旋風"         , give (agInc (AT, 0.15) 2) homeBwd)
+      ("天翔"         , give (agInc (AT, 0.10) 2) homeAll)
 
-      pair
-        (sacrifice homeFwd)
-        (attack 0.50 oppoAll)
-      pair
-        (death 0.50 self)
-        (heal 0.40 homeAll)
-      pair
-        (give (atInc (AT, 0.05) 2) homeAll)
-        (give (agInc (AT, 0.05) 2) homeAll)
+      ( "太陽破"
+      , pair (sacrifice homeFwd) (attack 0.50 oppoAll) )
+
+      ( "献身"
+      , pair(death 0.50 self) (heal 0.40 homeAll) )
+
+      ( "龍ノ舞"
+      , pair
+          (give (atInc (AT, 0.05) 2) homeAll)
+          (give (agInc (AT, 0.05) 2) homeAll) )
     ]
-    |> Set.ofList
+    |> List.map (fun (name, oeff) -> (name, (name, oeff)))
+    |> Map.ofList
 
-  let isPreset oeff =
-    preset |> Set.contains oeff
+  /// プリセットに含まれる効果か？
+  /// (名前は異なっていてもよい。)
+  let isPreset: OEffect -> bool =
+    let oeffSet =
+      preset
+      |> Map.toList
+      |> List.map (fun (_, (_, oeff)) -> oeff)
+      |> Set.ofList
+    let body oeff =
+      oeffSet |> Set.contains oeff
+    in body

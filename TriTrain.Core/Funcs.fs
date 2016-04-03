@@ -140,6 +140,8 @@ module KEffect =
   let duration    (keff: KEffect) = keff.Duration
 
 module OEffect =
+  let name ((name, _): NamedOEffect) = name
+
   let rec toList oeff =
     match oeff with
     | OEffectList oeffs -> oeffs |> List.collect toList

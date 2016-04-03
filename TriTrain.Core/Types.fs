@@ -92,6 +92,9 @@ module Types =
     | Swap          of NamedScope
     | GenToken      of list<CardSpec>
 
+  and NamedOEffect =
+    string * OEffect
+
   and TriggerCond =
     /// At the beginning of each turn
     | WhenBoT
@@ -103,7 +106,7 @@ module Types =
   and Ability =
     {
       Cond          : TriggerCond
-      Effect        : OEffect
+      Effect        : NamedOEffect
     }
 
   and Status =
@@ -119,7 +122,7 @@ module Types =
       Status        : Status
       Elem          : Elem
       Abils         : list<Ability>
-      Skills        : Map<Row, OEffect>
+      Skills        : Map<Row, NamedOEffect>
     }
 
   type CardId =

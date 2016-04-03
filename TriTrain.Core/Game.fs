@@ -202,7 +202,7 @@ module Game =
     let g =
       match skillOpt with
       | None -> g
-      | Some oeff ->
+      | Some (_, oeff) ->
           g |> procOEffect (Some actor) (actorId |> CardId.owner, vx) oeff
     in g
 

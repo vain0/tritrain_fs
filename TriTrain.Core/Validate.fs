@@ -38,7 +38,7 @@ module CardSpec =
         |> CardSpec.skills
         |> Map.valueSet
         |> Set.toList
-        |> List.collect (OEffect.toList)
+        |> List.collect (fun (_, oeff) -> oeff |> OEffect.toList)
       if skills |> List.forall (OEffect.isPreset) |> not then
         return! fail "Card may have only preset effects."
       if skills |> List.length > 4 then
