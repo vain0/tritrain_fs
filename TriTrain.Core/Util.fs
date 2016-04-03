@@ -1,6 +1,7 @@
 ﻿namespace TriTrain.Core
 
 open System
+open Chessie.ErrorHandling
 
 [<AutoOpen>]
 module Misc =
@@ -235,5 +236,9 @@ module Yaml =
   let customDump x =
     Yaml.dumpWith customDefs x
 
-  let customTryLoad<'t> =
-    Yaml.tryLoadWith<'t> customDefs
+  let customTryLoad<'t> yaml =
+    try
+      Yaml.loadWith<'t> customDefs yaml
+      |> pass
+    with
+    | e -> e |> fail

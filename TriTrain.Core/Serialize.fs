@@ -12,7 +12,7 @@ module DeckSpec =
     trial {
       let! spec =
         Yaml.customTryLoad<DeckSpec> yaml
-        |> Trial.failIfNone "Invalid YAML"
+        |> Trial.mapFailure (fun es -> es |> List.map(fun e -> e.Message))
       do! spec |> DeckSpec.validate
       return spec
     }
