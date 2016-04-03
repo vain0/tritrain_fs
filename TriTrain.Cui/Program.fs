@@ -7,8 +7,8 @@ open Chessie.ErrorHandling
 module Program =
   let loadDefaultPlayers =
       trial {
-        let! deck1 = DeckSpec.load "deck1.yaml"
-        let! deck2 = DeckSpec.load "deck2.yaml"
+        let! deck1 = DeckSpecSrc.load "l.tritrain_deck"
+        let! deck2 = DeckSpecSrc.load "r.tritrain_deck"
         let pl1 =
           {
             Name      = "左人"

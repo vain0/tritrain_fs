@@ -83,6 +83,13 @@ module Map =
         )
     |> Set.ofList
 
+  let choose f m =
+    m |> Map.fold (fun m k v ->
+        match f k v with
+        | None      -> m
+        | Some v'   -> m |> Map.add k v'
+        ) Map.empty
+
 [<RequireQualifiedAccess>]
 module String =
   let isNamey =
