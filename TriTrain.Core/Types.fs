@@ -204,3 +204,9 @@ module Types =
 
       Events        : Observable.Source<GameEvent * Game>
     }
+
+  [<Literal>]
+  let StatusTotal = 300
+
+  [<Literal>]
+  let MaxDefaultAG = 50
