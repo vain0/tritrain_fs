@@ -233,6 +233,10 @@ module Card =
       AG = card |> curAg
     }
 
+  let setHp hp card =
+    let hp = hp |> max 0
+    in { card with CurHP = hp }
+
   /// 再生効果を適用する
   let regenerate card =
     let (regenValues, effects') =
@@ -244,10 +248,8 @@ module Card =
           | _ -> None
           )
     let card =
-      { card with
-          CurHP     = regenValues |> List.sum |> int |> max 0
-          Effects   = effects'
-      }
+      { card with Effects = effects' }
+      |> setHp (regenValues |> List.sum |> int)
     in card
 
 module Amount =
