@@ -196,6 +196,10 @@ module Amount =
           | None -> 0.0
     in value
 
+module DeckSpec =
+  let name        (spec: DeckSpec) = spec.Name
+  let cards       (spec: DeckSpec) = spec.Cards
+
 module Deck =
   let create (spec) (plId) =
     spec
@@ -246,7 +250,7 @@ module Player =
 
   let create spec plId =
     let deck' =
-      Deck.create (spec |> PlayerSpec.deck) plId
+      Deck.create (spec |> PlayerSpec.deck |> DeckSpec.cards) plId
     let pl =
       {
         PlayerId      = plId
