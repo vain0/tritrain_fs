@@ -53,13 +53,9 @@ module Types =
     option<int>
 
   /// クリーチャーに作用する継続的効果
-  type KEffectToCreatureType =
+  type KEffectType =
     | ATInc         of Amount
     | AGInc         of Amount
-
-  type KEffectType =
-    | KEffectToCreature
-      of KEffectToCreatureType * Scope
 
   /// 継続的効果 (Continuous Effect)
   type KEffect =
@@ -73,7 +69,7 @@ module Types =
     | Damage        of Amount
     | Heal          of Amount
     | Death         of Amount
-    | Giving        of KEffect
+    | Give          of KEffect
     //| Unsummon
 
   /// 単発的効果 (Oneshot Effect)

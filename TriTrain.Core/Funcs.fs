@@ -152,7 +152,7 @@ module Card =
     |> effects
     |> List.map (fun keff ->
         match keff |> KEffect.typ with
-        | KEffectToCreature (ATInc (One, value), _) -> value
+        | ATInc (One, value) -> value
         | _ -> 0.0
         )
     |> List.sum
@@ -164,7 +164,7 @@ module Card =
     |> effects
     |> List.map (fun keff ->
         match keff |> KEffect.typ with
-        | KEffectToCreature (AGInc (One, value), _) -> value
+        | AGInc (One, value) -> value
         | _ -> 0.0
         )
     |> List.sum

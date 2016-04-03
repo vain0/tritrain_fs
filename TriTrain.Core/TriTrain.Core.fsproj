@@ -48,6 +48,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="Funcs.fs" />
     <Compile Include="Game.fs" />
+    <Compile Include="Preset.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
