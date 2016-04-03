@@ -261,6 +261,16 @@ module Amount =
           | None -> 0.0
     in value * rate
 
+  let resolveKEffect actorOpt target keff =
+    match keff |> KEffect.typ with
+    | ATInc amount ->
+        { keff with Type = ATInc (One, amount |> resolve actorOpt) }
+    | AGInc amount ->
+        { keff with Type = AGInc (One, amount |> resolve actorOpt) }
+    | Regenerate amount ->
+        // 対象者の最大HPに依存する
+        { keff with Type = Regenerate (One, amount |> resolve (Some target)) }
+
 module DeckSpec =
   let name        (spec: DeckSpec) = spec.Name
   let cards       (spec: DeckSpec) = spec.Cards

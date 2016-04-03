@@ -132,21 +132,10 @@ module Game =
     in g
 
   let giveKEffect actorOpt targetId keff g =
-    match keff |> KEffect.typ with
-    | ATInc amount ->
-        let amount'   = (One, amount |> Amount.resolve actorOpt)
-        let keff'     = { keff with Type = ATInc amount' }
-        in g |> giveKEffectImpl targetId keff'
-    | AGInc amount ->
-        let amount'   = (One, amount |> Amount.resolve actorOpt)
-        let keff'     = { keff with Type = AGInc amount' }
-        in g |> giveKEffectImpl targetId keff'
-    | Regenerate amount ->
-        let target    = g |> card targetId
-        // 対象者の最大HPに依存する
-        let amount'   = (One, amount |> Amount.resolve (Some target))
-        let keff'     = { keff with Type = Regenerate amount' }
-        in g |> giveKEffectImpl targetId keff'
+    let target    = g |> card targetId
+    let keff'     = Amount.resolveKEffect actorOpt target keff
+    let g         = g |> giveKEffectImpl targetId keff'
+    in g
 
   let rec procOEffectToUnit actorOpt targetId oeffType g =
     match oeffType with
