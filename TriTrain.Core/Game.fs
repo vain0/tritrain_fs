@@ -115,8 +115,8 @@ module Game =
 
   let incCardHp targetId amount g =
     let target    = g |> card targetId
-    let hp'       = target |> Card.curHp |> (+) amount |> max 0 
-    let g         = g |> updateCard { target with CurHP = hp' }
+    let hp'       = target |> Card.curHp |> (+) amount
+    let g         = g |> updateCard (target |> Card.setHp hp')
     let g         = g |> happen (CardHpInc (targetId, amount))
     let g =
       if hp' = 0
