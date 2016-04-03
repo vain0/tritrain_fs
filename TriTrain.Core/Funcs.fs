@@ -212,6 +212,13 @@ module Card =
     |> (+) (card |> spec |> CardSpec.status |> Status.ag |> float)
     |> int
 
+  let curStatus card =
+    {
+      HP = card |> curHp 
+      AT = card |> curAt
+      AG = card |> curAg
+    }
+
 module Amount =
   /// 変量を決定する
   let rec resolve (actor: option<Card>) (amount: Amount) =
