@@ -284,7 +284,7 @@ module Game =
 
     | UpkeepPhase ->
         // TODO: BoT能力が誘発
-        g |> procPhase RotatePhase
+        g |> procPhase (ActionPhase Set.empty)
 
     | ActionPhase actedCards ->
         match g |> tryFindFastest actedCards with
