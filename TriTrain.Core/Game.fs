@@ -313,7 +313,7 @@ module Game =
           | 20 -> g |> endWith Draw
           | t  -> { g with Turn = t + 1 } |> procPhase SummonPhase
 
-  let run plLftSpec plRgtSpec =
-    create plLftSpec plRgtSpec
+  let run g: Game =
+    g
     |> happen GameBegin
     |> procPhase SummonPhase
