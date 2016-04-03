@@ -65,6 +65,8 @@ module ScopeSide =
     [Home; Oppo; Both]
 
 module Scope =
+  let name ((name, _): NamedScope) = name
+
   /// plId からみた side 側のリスト
   let sides plId side =
     match side with

@@ -160,12 +160,12 @@ module Game =
         oeffs |> List.fold (flip (procOEffect actorOpt source)) g
     | GenToken cardSpecs ->
         g // TODO: トークン生成
-    | Swap scope ->
+    | Swap (_, scope) ->
         match scope |> Scope.placeSet source |> Set.toList with
         | [r1; r2] ->
             g // TODO: 交代
         | _ -> g
-    | OEffectToUnits (typ, scope) ->
+    | OEffectToUnits (typ, (_, scope)) ->
         let targets =
           scope |> Scope.placeSet source
           |> Set.toList

@@ -48,6 +48,11 @@ module Types =
     | FrontEnemy
     | UnionScope    of list<Scope>
 
+  type ScopeName = string
+
+  type NamedScope =
+    ScopeName * Scope
+
   /// 変量
   type VarType =
     | One
@@ -83,8 +88,8 @@ module Types =
   type OEffect =
     | OEffectList   of list<OEffect>
     | OEffectToUnits
-      of OEffectToUnitType * Scope
-    | Swap          of Scope
+      of OEffectToUnitType * NamedScope
+    | Swap          of NamedScope
     | GenToken      of list<CardSpec>
 
   and TriggerCond =
