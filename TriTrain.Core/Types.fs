@@ -18,6 +18,13 @@ module Types =
     /// backward row
     | BwdRow
 
+  /// 四元素(elements)
+  type Elem =
+    | Air
+    | Fire
+    | Water
+    | Earth
+
   type PlayerId =
     | PlLft
     | PlRgt
@@ -41,6 +48,11 @@ module Types =
     | FrontEnemy
     | UnionScope    of list<Scope>
 
+  type ScopeName = string
+
+  type NamedScope =
+    ScopeName * Scope
+
   /// 変量
   type VarType =
     | One
@@ -53,13 +65,9 @@ module Types =
     option<int>
 
   /// クリーチャーに作用する継続的効果
-  type KEffectToCreatureType =
+  type KEffectType =
     | ATInc         of Amount
     | AGInc         of Amount
-
-  type KEffectType =
-    | KEffectToCreature
-      of KEffectToCreatureType * Scope
 
   /// 継続的効果 (Continuous Effect)
   type KEffect =
@@ -73,16 +81,19 @@ module Types =
     | Damage        of Amount
     | Heal          of Amount
     | Death         of Amount
-    | Giving        of KEffect
+    | Give          of KEffect
     //| Unsummon
 
   /// 単発的効果 (Oneshot Effect)
   type OEffect =
     | OEffectList   of list<OEffect>
     | OEffectToUnits
-      of OEffectToUnitType * Scope
-    | Swap          of Scope
+      of OEffectToUnitType * NamedScope
+    | Swap          of NamedScope
     | GenToken      of list<CardSpec>
+
+  and NamedOEffect =
+    string * OEffect
 
   and TriggerCond =
     /// At the beginning of each turn
@@ -95,7 +106,7 @@ module Types =
   and Ability =
     {
       Cond          : TriggerCond
-      Effect        : OEffect
+      Effect        : NamedOEffect
     }
 
   and Status =
@@ -109,8 +120,9 @@ module Types =
     {
       Name          : CardName
       Status        : Status
+      Elem          : Elem
       Abils         : list<Ability>
-      Skills        : Map<Row, OEffect>
+      Skills        : Map<Row, NamedOEffect>
     }
 
   type CardId =
@@ -128,7 +140,10 @@ module Types =
     }
 
   type DeckSpec =
-    T7<CardSpec>
+    {
+      Name          : string
+      Cards         : T7<CardSpec>
+    }
 
   type Deck =
     list<CardId>
@@ -167,9 +182,15 @@ module Types =
 
   type GameEvent =
     | GameBegin
-    | GameEnd       of GameResult
-    | TurnBegin     of int
-    | TurnEnd       of int
+    | GameEnd             of GameResult
+    | TurnBegin
+    | CardEnter           of CardId * Place
+    | CardActBegin        of CardId * NamedOEffect
+    | CardHpInc           of CardId * amount: int
+    | CardDie             of CardId
+    | CardGainEffect      of CardId * KEffect
+    | CardLoseEffect      of CardId * KEffect
+    | CardMove            of list<CardId * (* src: *) Place * (* dst: *) Place>
 
   type Game =
     {
@@ -180,4 +201,6 @@ module Types =
 
       /// 誘発し、まだ処理されていない誘発型能力
       Triggered     : list<OEffect>
+
+      Events        : Observable.Source<GameEvent * Game>
     }

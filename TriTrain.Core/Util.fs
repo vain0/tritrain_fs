@@ -8,6 +8,9 @@ module Misc =
 
   let flip f x y = f y x
 
+  let isInInterval l r x =
+    l <= x && x < r
+
   type T3<'t> = 't * 't * 't
   type T7<'t> = 't * 't * 't * 't * 't * 't * 't
 
@@ -80,9 +83,157 @@ module Map =
     |> Set.ofList
 
 [<RequireQualifiedAccess>]
+module String =
+  let isNamey =
+    let acceptableChar ch =
+      Char.IsLetter(ch)
+      || Char.IsDigit(ch)
+      || Char.IsWhiteSpace(ch)
+      || (ch = '_')
+    let body s =
+      s |> String.forall acceptableChar
+    in body
+
+[<RequireQualifiedAccess>]
 module Random =
   let rng = Random()
 
   let roll (prob: float) =
     rng.NextDouble() < prob
     || prob >= 100.0
+
+[<RequireQualifiedAccess>]
+module Observable =
+  open System.Diagnostics
+
+  let indexed obs =
+    obs
+    |> Observable.scan
+        (fun (opt, i) x -> (Some x, i + 1)) (None, -1)
+    |> Observable.choose
+        (fun (opt, i) -> opt |> Option.map (fun x -> (x, i)))
+
+  let duplicateFirst obs =
+    let obs' =
+      obs
+      |> indexed
+      |> Observable.choose
+          (fun (x, i) -> if i = 0 then Some x else None)
+    in Observable.merge obs obs'
+
+  type Source<'t>() =
+    let protect f =
+      let mutable ok = false
+      try 
+        f ()
+        ok <- true
+      finally
+        Debug.Assert(ok, "IObserver method threw an exception.")
+
+    let mutable key = 0
+    let mutable subscriptions = (Map.empty: Map<int, IObserver<'t>>)
+
+    let thisLock = new obj()
+
+    let subscribe obs =
+      let body () =
+        key |> tap (fun k ->
+          do key <- k + 1
+          do subscriptions <- subscriptions |> Map.add k obs
+          )
+      in lock thisLock body
+
+    let unsubscribe k =
+      let body () =
+        subscriptions <- subscriptions |> Map.remove k
+      in
+        lock thisLock body
+
+    let next obs =
+      subscriptions |> Map.iter (fun _ value ->
+        protect (fun () -> value.OnNext(obs)))
+
+    let completed () =
+      subscriptions |> Map.iter (fun _ value ->
+        protect (fun () -> value.OnCompleted()))
+
+    let error err =
+      subscriptions |> Map.iter (fun _ value ->
+        protect (fun () -> value.OnError(err)))
+
+    let obs = 
+      { new IObservable<'t> with
+          member this.Subscribe(obs) =
+            let cancelKey = subscribe obs
+            { new IDisposable with 
+                member this.Dispose() = unsubscribe cancelKey
+                }
+          }
+
+    let mutable finished = false
+
+    member this.Next(obs) =
+      Debug.Assert(not finished, "IObserver is already finished")
+      next obs
+
+    member this.Completed() =
+      Debug.Assert(not finished, "IObserver is already finished")
+      finished <- true
+      completed()
+
+    member this.Error(err) =
+      Debug.Assert(not finished, "IObserver is already finished")
+      finished <- true
+      error err
+
+    member this.AsObservable = obs
+
+module ObjectElementSeq =
+  open System
+  open System.Linq
+  open Microsoft.FSharp.Reflection
+
+  let cast (t: Type) (xs: obj seq) =
+    let enumerable = typeof<Enumerable>
+    let cast =
+      let nonGeneric = enumerable.GetMethod("Cast")
+      nonGeneric.MakeGenericMethod([| t |])
+    cast.Invoke(null, [| xs |])
+
+  let toSet (t: Type) (xs: obj seq) =
+    let setType         = typedefof<Set<_>>.MakeGenericType(t)
+    let parameter       = xs |> cast t
+    let parameterType   = typedefof<seq<_>>.MakeGenericType([| t |])
+    let constructor'    = setType.GetConstructor([| parameterType |])
+    in constructor'.Invoke([| parameter |])
+
+module Yaml =
+  open FsYaml
+  open FsYaml.NativeTypes
+  open FsYaml.RepresentationTypes
+  open FsYaml.CustomTypeDefinition
+
+  let setDef =
+    {
+      Accept = isGenericTypeDef (typedefof<Set<_>>)
+      Construct = fun construct' t ->
+        function
+        | Sequence (s, _) ->
+            let elemType = t.GetGenericArguments().[0]
+            let elems = s |> List.map (construct' elemType)
+            in ObjectElementSeq.toSet elemType elems
+        | otherwise -> raise (mustBeSequence t otherwise)
+      Represent =
+        representSeqAsSequence
+    }
+
+  let customDefs =
+    [
+      setDef
+    ]
+
+  let customDump x =
+    Yaml.dumpWith customDefs x
+
+  let customTryLoad<'t> =
+    Yaml.tryLoadWith<'t> customDefs

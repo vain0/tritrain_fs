@@ -28,6 +28,24 @@ module CardId =
       Id          = Id.create ()
     }
 
+module Elem =
+  let all =
+    [Air; Fire; Water; Earth]
+
+  let isStrongTo src tar =
+    match (src, tar) with
+    | (Air  , Fire )
+    | (Fire , Water)
+    | (Water, Earth)
+    | (Earth, Air  ) -> true
+    | _ -> false
+
+  /// 属性 src が属性 tar を攻撃するときにかかる係数
+  let coeff src tar =
+    if   isStrongTo src tar then 1.5
+    elif isStrongTo tar src then 0.5
+    else 1.0
+
 module Vertex =
   let all =
     [Fwd; Lft; Rgt]
@@ -47,6 +65,8 @@ module ScopeSide =
     [Home; Oppo; Both]
 
 module Scope =
+  let name ((name, _): NamedScope) = name
+
   /// plId からみた side 側のリスト
   let sides plId side =
     match side with
@@ -119,14 +139,29 @@ module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration
 
+module OEffect =
+  let name ((name, _): NamedOEffect) = name
+
+  let rec toList oeff =
+    match oeff with
+    | OEffectList oeffs -> oeffs |> List.collect toList
+    | _ -> [oeff]
+
 module Status =
   let hp (st: Status) = st.HP
   let at (st: Status) = st.AT
   let ag (st: Status) = st.AG
 
+  let toList st =
+    [ st |> hp; st |> at; st |> ag ]
+
+  let total st =
+    st |> toList |> List.sum
+
 module CardSpec =
   let name        (spec: CardSpec) = spec.Name
   let status      (spec: CardSpec) = spec.Status
+  let elem        (spec: CardSpec) = spec.Elem
   let abils       (spec: CardSpec) = spec.Abils
   let skills      (spec: CardSpec) = spec.Skills
 
@@ -147,12 +182,18 @@ module Card =
   let owner =
     cardId >> CardId.owner
 
+  let name =
+    spec >> CardSpec.name
+
+  let elem =
+    spec >> CardSpec.elem
+
   let curAt card =
     card
     |> effects
     |> List.map (fun keff ->
         match keff |> KEffect.typ with
-        | KEffectToCreature (ATInc (One, value), _) -> value
+        | ATInc (One, value) -> value
         | _ -> 0.0
         )
     |> List.sum
@@ -164,12 +205,19 @@ module Card =
     |> effects
     |> List.map (fun keff ->
         match keff |> KEffect.typ with
-        | KEffectToCreature (AGInc (One, value), _) -> value
+        | AGInc (One, value) -> value
         | _ -> 0.0
         )
     |> List.sum
     |> (+) (card |> spec |> CardSpec.status |> Status.ag |> float)
     |> int
+
+  let curStatus card =
+    {
+      HP = card |> curHp 
+      AT = card |> curAt
+      AG = card |> curAg
+    }
 
 module Amount =
   /// 変量を決定する
@@ -184,6 +232,10 @@ module Amount =
           | None -> 0.0
     in value
 
+module DeckSpec =
+  let name        (spec: DeckSpec) = spec.Name
+  let cards       (spec: DeckSpec) = spec.Cards
+
 module Deck =
   let create (spec) (plId) =
     spec
@@ -194,27 +246,19 @@ module Deck =
         )
 
 module Board =
-  /// 空き頂点をつぶして、カードを移動させる。
-  /// 移動後の盤面と、移動したカードのリストが返る。
-  let rotate (board: Board): Board * list<CardId * Vertex * Vertex> =
-    let (board', log) =
-      board
-      |> Map.toList
-      |> List.sortBy fst    // 位置順
-      |> List.zipShrink Vertex.all
-      |> List.map
-          (fun (v', (v, cardId)) ->
-              let vc = (v', cardId)
-              let log =  // カードの移動の記録
-                if v = v'
-                then None
-                else Some (cardId, v, v')
-              in (vc, log)
-              )
-      |> List.unzip
-    let board'  = board' |> Map.ofList
-    let log     = log |> List.choose id
-    in (board', log)
+  /// 空き頂点をつぶしてカードを移動させるために必要な、
+  /// 具体的なカードの移動を計算する。
+  let rotate (board: Board): list<CardId * Vertex * Vertex> =
+    board
+    |> Map.toList
+    |> List.sortBy fst    // 位置順
+    |> List.zipShrink Vertex.all
+    |> List.choose
+        (fun (v', (v, cardId)) ->
+            if v = v'
+            then None
+            else Some (cardId, v, v')
+            )
 
   let emptyVertexSet board =
     board
@@ -234,7 +278,7 @@ module Player =
 
   let create spec plId =
     let deck' =
-      Deck.create (spec |> PlayerSpec.deck) plId
+      Deck.create (spec |> PlayerSpec.deck |> DeckSpec.cards) plId
     let pl =
       {
         PlayerId      = plId
@@ -244,3 +288,6 @@ module Player =
         Trash         = Set.empty
       }
     in (pl, deck')
+
+  let name =
+    spec >> PlayerSpec.name
