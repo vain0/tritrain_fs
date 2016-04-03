@@ -69,7 +69,7 @@ module Types =
     | Damage        of Amount
     | Heal          of Amount
     | Death         of Amount
-    | Giving        of KEffect
+    | Give          of KEffect
     //| Unsummon
 
   /// 単発的効果 (Oneshot Effect)

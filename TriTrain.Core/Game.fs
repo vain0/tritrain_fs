@@ -134,7 +134,7 @@ module Game =
           else g
         in g
 
-    | Giving keff ->
+    | Give keff ->
         g |> giveKEffectTo targetId keff
 
   let rec procOEffect actorOpt (source: Place) oeff g =
