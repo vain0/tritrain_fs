@@ -286,11 +286,9 @@ module Game =
           match plId with
           | PlLft -> 0.50
           | PlRgt -> 0.60
-        in
-          {
-            Type        = Regenerate (MaxHP, rate)
-            Duration    = None // 無期限
-          }
+        let typ         = (Regenerate (MaxHP, rate))
+        let duration    = None  // 無期限
+        in KEffect.create typ duration
       in
         g
         |> cardMap

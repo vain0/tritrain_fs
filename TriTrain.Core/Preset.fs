@@ -22,23 +22,13 @@ module Scope =
     ("自身と右翼", UnionScope [self |> snd; homeRgt |> snd])
 
 module KEffect =
-  let atInc amount duration =
-    {
-      Type        = ATInc amount
-      Duration    = Some duration
-    }
+  let createWithDuration typ duration =
+    KEffect.create typ (Some duration)
 
-  let agInc amount duration =
-    {
-      Type        = AGInc amount
-      Duration    = Some duration
-    }
+  let atInc amount = createWithDuration (ATInc amount)
+  let agInc amount = createWithDuration (AGInc amount)
 
-  let regenerate rate duration =
-    {
-      Type        = Regenerate (MaxHP, rate)
-      Duration    = Some duration
-    }
+  let regenerate rate = createWithDuration (Regenerate (MaxHP, rate))
 
 module OEffect =
   open Scope

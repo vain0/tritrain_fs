@@ -141,6 +141,12 @@ module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration
 
+  let create typ duration =
+    {
+      Type        = typ
+      Duration    = duration
+    }
+
 module OEffect =
   let name ((name, _): NamedOEffect) = name
 
