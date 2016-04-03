@@ -80,6 +80,18 @@ module Map =
     |> Set.ofList
 
 [<RequireQualifiedAccess>]
+module String =
+  let isNamey =
+    let acceptableChar ch =
+      Char.IsLetter(ch)
+      || Char.IsDigit(ch)
+      || Char.IsWhiteSpace(ch)
+      || (ch = '_')
+    let body s =
+      s |> String.forall acceptableChar
+    in body
+
+[<RequireQualifiedAccess>]
 module Random =
   let rng = Random()
 
