@@ -28,6 +28,24 @@ module CardId =
       Id          = Id.create ()
     }
 
+module Elem =
+  let all =
+    [Air; Fire; Water; Earth]
+
+  let isStrongTo src tar =
+    match (src, tar) with
+    | (Air  , Fire )
+    | (Fire , Water)
+    | (Water, Earth)
+    | (Earth, Air  ) -> true
+    | _ -> false
+
+  /// 属性 src が属性 tar を攻撃するときにかかる係数
+  let coeff src tar =
+    if   isStrongTo src tar then 1.5
+    elif isStrongTo tar src then 0.5
+    else 1.0
+
 module Vertex =
   let all =
     [Fwd; Lft; Rgt]
@@ -139,6 +157,7 @@ module Status =
 module CardSpec =
   let name        (spec: CardSpec) = spec.Name
   let status      (spec: CardSpec) = spec.Status
+  let elem        (spec: CardSpec) = spec.Elem
   let abils       (spec: CardSpec) = spec.Abils
   let skills      (spec: CardSpec) = spec.Skills
 
@@ -158,6 +177,9 @@ module Card =
 
   let owner =
     cardId >> CardId.owner
+
+  let elem =
+    spec >> CardSpec.elem
 
   let curAt card =
     card
