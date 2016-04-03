@@ -165,12 +165,7 @@ module Game =
       moves |> List.fold (fun g (cardId, _, (plId', vx')) ->
           g |> updateBoard plId' (g |> board plId' |> Map.add vx' cardId)
           ) g
-    let g =
-      // 移動を通知
-      moves |> List.fold (fun g l ->
-          g |> happen (CardMove l)
-          ) g
-    in g
+    in g |> happen (CardMove moves)
 
   let swapCards r1 r2 g =
     let placeMap = g |> placeMap
