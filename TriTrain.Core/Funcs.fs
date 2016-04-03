@@ -250,9 +250,10 @@ module Card =
           | { Type = (Regenerate (One, value)) } -> Some value
           | _ -> None
           )
+    let rate = regenValues |> List.sum |> flip (/) 100.0
     let card =
       { card with Effects = effects' }
-      |> setHp (regenValues |> List.sum |> int)
+      |> setHp (card |> maxHp |> float |> (*) rate |> int)
     in card
 
 module Amount =
@@ -281,8 +282,7 @@ module Amount =
     | AGInc amount ->
         { keff with Type = AGInc (One, amount |> resolve actorOpt) }
     | Regenerate amount ->
-        // 対象者の最大HPに依存する
-        { keff with Type = Regenerate (One, amount |> resolve (Some target)) }
+        { keff with Type = Regenerate (One, amount |> resolve actorOpt) }
 
   /// 単発的効果の変量を固定する。
   /// 事後: 含まれる Amount はすべて (One, _) である。

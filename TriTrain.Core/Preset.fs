@@ -28,7 +28,7 @@ module KEffect =
   let atInc amount = createWithDuration (ATInc amount)
   let agInc amount = createWithDuration (AGInc amount)
 
-  let regenerate rate = createWithDuration (Regenerate (MaxHP, rate))
+  let regenerate rate = createWithDuration (Regenerate (AT, rate))
 
 module OEffect =
   open Scope

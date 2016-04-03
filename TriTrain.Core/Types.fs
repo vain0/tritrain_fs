@@ -56,7 +56,7 @@ module Types =
   /// 変量
   type VarType =
     | One
-    | MaxHP
+    | MaxHP  // unused
     | AT
 
   type Amount =
@@ -69,7 +69,7 @@ module Types =
   type KEffectType =
     | ATInc         of Amount
     | AGInc         of Amount
-    | Regenerate    of Amount  /// 変量は対象者のもの
+    | Regenerate    of Amount
 
   /// 継続的効果 (Continuous Effect)
   type KEffect =
