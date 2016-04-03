@@ -5,6 +5,7 @@ module Game =
   let plRgt       (g: Game) = g.PlRgt
   let cardMap     (g: Game) = g.CardMap
   let turn        (g: Game) = g.Turn
+  let events      (g: Game) = g.Events
 
   let create plLftSpec plRgtSpec =
     let (plLft, deckLft) = Player.create plLftSpec PlLft
@@ -20,6 +21,7 @@ module Game =
         CardMap     = cardMap
         Turn        = 0
         Triggered   = []
+        Events      = Observable.Source<GameEvent>()
       }
 
   let player plId g =
@@ -59,8 +61,7 @@ module Game =
     in { g with CardMap = cardMap' }
 
   let happen ev g =
-    // TODO: notify the event
-    g
+    g |> tap (fun g -> (g |> events).Next(ev))
 
   let placeMap g: Map<Place, CardId> =
     PlayerId.all
