@@ -289,6 +289,31 @@ module Game =
     |> Board.emptyVertexSet
     |> Set.fold (fun g vx -> g |> summon plId vx) g
 
+  /// 全体に再生効果をかける
+  let procRegenerationPhase g =
+    let body plId g =
+      let keff =
+        let rate =
+          match plId with
+          | PlLft -> 0.50
+          | PlRgt -> 0.60
+        in
+          {
+            Type        = Regenerate (MaxHP, rate)
+            Duration    = None // 無期限
+          }
+      in
+        g
+        |> cardMap
+        |> Map.filter (fun _ card -> card |> Card.owner = plId)
+        |> Map.fold (fun g cardId card ->
+            g |> giveKEffect None cardId keff
+            ) g
+    let g =
+      PlayerId.all
+      |> List.fold (fun g plId -> g |> body plId) g
+    in g
+
   /// カードにかかっている継続的効果の経過ターン数を更新する
   let updateDuration cardId g =
     let card = g |> card cardId 
@@ -379,4 +404,5 @@ module Game =
   let run g: Game =
     g
     |> happen GameBegin
+    |> procRegenerationPhase
     |> procPhase SummonPhase
