@@ -52,3 +52,12 @@ module CardSpec =
       do! spec |> validateAbils
       do! spec |> validateSkills
     }
+
+module DeckSpec =
+  let validate spec =
+    trial {
+      if spec |> DeckSpec.name |> String.isNamey |> not then
+        return! fail "Deck name is invalid."
+      for cardSpec in spec |> DeckSpec.cards |> T7.toList do
+        do! CardSpec.validate cardSpec
+    }
