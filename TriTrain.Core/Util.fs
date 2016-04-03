@@ -162,7 +162,7 @@ module Observable =
         protect (fun () -> value.OnError(err)))
 
     let obs = 
-      { new IObservable<'T> with
+      { new IObservable<'t> with
           member this.Subscribe(obs) =
             let cancelKey = subscribe obs
             { new IDisposable with 
