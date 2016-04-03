@@ -190,6 +190,12 @@ module Card =
   let elem =
     spec >> CardSpec.elem
 
+  let maxHp =
+    spec >> CardSpec.status >> Status.hp
+
+  let isAlive card =
+    curHp card > 0
+
   let curAt card =
     card
     |> effects
@@ -221,18 +227,39 @@ module Card =
       AG = card |> curAg
     }
 
+  /// 再生効果を適用する
+  let regenerate card =
+    let (regenValues, effects') =
+      card
+      |> effects
+      |> List.paritionMap
+          (function
+          | { Type = (Regenerate (One, value)) } -> Some value
+          | _ -> None
+          )
+    let card =
+      { card with
+          CurHP     = regenValues |> List.sum |> int |> max 0
+          Effects   = effects'
+      }
+    in card
+
 module Amount =
   /// 変量を決定する
   let rec resolve (actor: option<Card>) (amount: Amount) =
     let rate = amount |> snd
     let value =
       match amount |> fst with
-      | One -> rate
+      | One -> 1.0
+      | MaxHP ->
+          match actor with
+          | Some actor -> actor |> Card.maxHp |> float
+          | None -> 0.0
       | AT ->
           match actor with
-          | Some actor -> actor |> Card.curAt |> float |> (*) rate
+          | Some actor -> actor |> Card.curAt |> float
           | None -> 0.0
-    in value
+    in value * rate
 
 module DeckSpec =
   let name        (spec: DeckSpec) = spec.Name

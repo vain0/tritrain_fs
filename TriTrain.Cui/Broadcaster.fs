@@ -92,6 +92,10 @@ module Broadcaster =
             (g' |> curHp)
             amount
 
+    | CardRegenerated (cardId, amount) ->
+        printCardName g' cardId
+        printfn " died and regenerated."
+
     | CardDie cardId ->
         printCardName g cardId  // 死亡する直前の状態を表示
         printfn " died."

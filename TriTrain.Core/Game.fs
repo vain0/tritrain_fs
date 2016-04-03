@@ -92,14 +92,26 @@ module Game =
     match g |> searchBoardFor cardId with
     | None -> g
     | Some (plId, vx) ->
-        // TODO: PIG能力が誘発
-        let board' = g |> board plId |> Map.remove vx
-        let trash' = g |> trash plId |> Set.add cardId
-        in
+        // TODO: Die能力が誘発
+        // 盤面から除去
+        let board'    = g |> board plId |> Map.remove vx
+        let g         = g |> updateBoard plId board'
+        // 再生効果
+        let card'     = g |> card cardId |> Card.regenerate
+        let g         = g |> updateCard card'
+
+        if card' |> Card.isAlive then
+          // 復活してボトムへ行く
           g
-          |> updateBoard plId board'
-          |> updateTrash plId trash'
+          |> updateDeck plId
+              (g |> deck plId |> flip List.append [cardId])
+          |> happen (CardRegenerated (cardId, card' |> Card.curHp))
+        
+        else // 復活せず、墓地へ行く
+          g
           |> happen (CardDie cardId)
+          |> updateTrash plId
+              (g |> trash plId |> Set.add cardId)
 
   let incCardHp targetId amount g =
     let target    = g |> card targetId
@@ -128,6 +140,12 @@ module Game =
     | AGInc amount ->
         let amount'   = (One, amount |> Amount.resolve actorOpt)
         let keff'     = { keff with Type = AGInc amount' }
+        in g |> giveKEffectImpl targetId keff'
+    | Regenerate amount ->
+        let target    = g |> card targetId
+        // 対象者の最大HPに依存する
+        let amount'   = (One, amount |> Amount.resolve (Some target))
+        let keff'     = { keff with Type = Regenerate amount' }
         in g |> giveKEffectImpl targetId keff'
 
   let rec procOEffectToUnit actorOpt targetId oeffType g =
@@ -271,6 +289,31 @@ module Game =
     |> Board.emptyVertexSet
     |> Set.fold (fun g vx -> g |> summon plId vx) g
 
+  /// 全体に再生効果をかける
+  let procRegenerationPhase g =
+    let body plId g =
+      let keff =
+        let rate =
+          match plId with
+          | PlLft -> 0.50
+          | PlRgt -> 0.60
+        in
+          {
+            Type        = Regenerate (MaxHP, rate)
+            Duration    = None // 無期限
+          }
+      in
+        g
+        |> cardMap
+        |> Map.filter (fun _ card -> card |> Card.owner = plId)
+        |> Map.fold (fun g cardId card ->
+            g |> giveKEffect None cardId keff
+            ) g
+    let g =
+      PlayerId.all
+      |> List.fold (fun g plId -> g |> body plId) g
+    in g
+
   /// カードにかかっている継続的効果の経過ターン数を更新する
   let updateDuration cardId g =
     let card = g |> card cardId 
@@ -361,4 +404,5 @@ module Game =
   let run g: Game =
     g
     |> happen GameBegin
+    |> procRegenerationPhase
     |> procPhase SummonPhase

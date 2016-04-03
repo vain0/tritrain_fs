@@ -61,6 +61,18 @@ module List =
         ) None
     |> Option.map fst
 
+  /// Apply f for each element in xs and partition them into two list.
+  /// The fst is y's where f x = Some y
+  /// and the other is x's where f x = None.
+  let paritionMap (f: 'x -> option<'y>) (xs: list<'x>): (list<'y> * list<'x>) =
+    xs
+    |> List.fold (fun (l, r) x ->
+        match f x with
+        | Some y -> (y :: l, r)
+        | None -> (l, x :: r)
+        ) ([], [])
+    |> (fun (l, r) -> (l |> List.rev, r |> List.rev))
+
 [<RequireQualifiedAccess>]
 module Map =
   let singleton k v =
