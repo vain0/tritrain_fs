@@ -230,16 +230,16 @@ module Amount =
     let rate = amount |> snd
     let value =
       match amount |> fst with
-      | One -> rate
+      | One -> 1.0
       | MaxHP ->
           match actor with
-          | Some actor -> actor |> Card.maxHp |> float |> (*) rate
+          | Some actor -> actor |> Card.maxHp |> float
           | None -> 0.0
       | AT ->
           match actor with
-          | Some actor -> actor |> Card.curAt |> float |> (*) rate
+          | Some actor -> actor |> Card.curAt |> float
           | None -> 0.0
-    in value
+    in value * rate
 
 module DeckSpec =
   let name        (spec: DeckSpec) = spec.Name
