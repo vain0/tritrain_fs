@@ -18,6 +18,13 @@ module Types =
     /// backward row
     | BwdRow
 
+  /// 四元素(elements)
+  type Elem =
+    | Air
+    | Fire
+    | Water
+    | Earth
+
   type PlayerId =
     | PlLft
     | PlRgt
@@ -105,6 +112,7 @@ module Types =
     {
       Name          : CardName
       Status        : Status
+      Elem          : Elem
       Abils         : list<Ability>
       Skills        : Map<Row, OEffect>
     }

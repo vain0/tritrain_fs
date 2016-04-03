@@ -28,6 +28,10 @@ module CardId =
       Id          = Id.create ()
     }
 
+module Elem =
+  let all =
+    [Air; Fire; Water; Earth]
+
 module Vertex =
   let all =
     [Fwd; Lft; Rgt]
@@ -139,6 +143,7 @@ module Status =
 module CardSpec =
   let name        (spec: CardSpec) = spec.Name
   let status      (spec: CardSpec) = spec.Status
+  let elem        (spec: CardSpec) = spec.Elem
   let abils       (spec: CardSpec) = spec.Abils
   let skills      (spec: CardSpec) = spec.Skills
 
