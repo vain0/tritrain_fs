@@ -21,6 +21,9 @@ module Scope =
   let selfAndRgt =
     ("自身と右翼", UnionScope [self |> snd; homeRgt |> snd])
 
+  let nonself =
+    ("他の味方", DiffScope (homeAll |> snd, self |> snd))
+
 module KEffect =
   let atInc amount duration =
     {
