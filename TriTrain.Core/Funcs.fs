@@ -119,6 +119,12 @@ module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration
 
+module OEffect =
+  let rec toList oeff =
+    match oeff with
+    | OEffectList oeffs -> oeffs |> List.collect toList
+    | _ -> [oeff]
+
 module Status =
   let hp (st: Status) = st.HP
   let at (st: Status) = st.AT
