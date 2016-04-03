@@ -246,27 +246,19 @@ module Deck =
         )
 
 module Board =
-  /// 空き頂点をつぶして、カードを移動させる。
-  /// 移動後の盤面と、移動したカードのリストが返る。
-  let rotate (board: Board): Board * list<CardId * Vertex * Vertex> =
-    let (board', log) =
-      board
-      |> Map.toList
-      |> List.sortBy fst    // 位置順
-      |> List.zipShrink Vertex.all
-      |> List.map
-          (fun (v', (v, cardId)) ->
-              let vc = (v', cardId)
-              let log =  // カードの移動の記録
-                if v = v'
-                then None
-                else Some (cardId, v, v')
-              in (vc, log)
-              )
-      |> List.unzip
-    let board'  = board' |> Map.ofList
-    let log     = log |> List.choose id
-    in (board', log)
+  /// 空き頂点をつぶしてカードを移動させるために必要な、
+  /// 具体的なカードの移動を計算する。
+  let rotate (board: Board): list<CardId * Vertex * Vertex> =
+    board
+    |> Map.toList
+    |> List.sortBy fst    // 位置順
+    |> List.zipShrink Vertex.all
+    |> List.choose
+        (fun (v', (v, cardId)) ->
+            if v = v'
+            then None
+            else Some (cardId, v, v')
+            )
 
   let emptyVertexSet board =
     board

@@ -332,15 +332,14 @@ module Game =
     | RotatePhase ->
         PlayerId.all
         |> List.fold (fun g plId ->
-            let (board', log) =
-              g |> board plId |> Board.rotate
-            let g = g |> updateBoard plId board'
-            let g =
-              // 移動を通知
-              log |> List.fold (fun g (cardId, v, v') ->
-                  g |> happen (CardMove (cardId, (plId, v), (plId, v')))
-                  ) g
-            in g
+            let moves =
+              g
+              |> board plId
+              |> Board.rotate
+              |> List.map (fun (cardId, vx, vx') ->
+                  (cardId, (plId, vx), (plId, vx'))
+                  )
+            in g |> moveCards moves
             ) g
         |> procPhase PassPhase
 
