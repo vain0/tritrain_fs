@@ -81,7 +81,7 @@ module Broadcaster =
         printCardName g' cardId
         printfn " is summoned!"
 
-    | CardActBegin (cardId, (name, _)) ->
+    | CardBeginAction (cardId, (name, _)) ->
         printfn "--------"
         printCardName g' cardId
         printfn " does '%s'!"

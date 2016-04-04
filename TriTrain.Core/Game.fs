@@ -244,7 +244,7 @@ module Game =
       | None -> g
       | Some ((_, oeff) as noeff) ->
           g
-          |> happen (CardActBegin (actorId, noeff))
+          |> happen (CardBeginAction (actorId, noeff))
           |> procOEffect (Some actor) (actorId |> CardId.owner, vx) oeff
     in g
 
