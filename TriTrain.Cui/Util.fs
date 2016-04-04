@@ -27,9 +27,9 @@ module Trial =
         0
     | Warn ((), msgs) ->
         eprintfn "Warning:"
-        msgs |> List.iter (eprintf "%s")
+        msgs |> List.iter (eprintfn "%s")
         0
     | Fail msgs ->
         eprintfn "Error:"
-        msgs |> List.iter (eprintf "%s")
+        msgs |> List.iter (eprintfn "%s")
         1
