@@ -50,9 +50,6 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Content Include="app.config">
-      <Paket>True</Paket>
-    </Content>
     <Compile Include="..\paket-files\fsprojects\Chessie\src\Chessie\ErrorHandling.fs">
       <Paket>True</Paket>
       <Link>ErrorHandling.fs</Link>
