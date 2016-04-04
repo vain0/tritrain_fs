@@ -16,16 +16,16 @@ module Program =
       return (pl1, pl2)
     }
 
-  let runGameWithBroadcaster (pl1, pl2) =
+  let runGameWithObserver observe (pl1, pl2): Game =
     let g = Game.create pl1 pl2
-    use o = Broadcaster.subscribe g
-    let _ = g |> Game.run
-    in ()
+    use o = observe g
+    in g |> Game.run
 
   let showGame deckPaths =
     trial {
-      let! (pl1, pl2) = loadDecks deckPaths
-      do runGameWithBroadcaster (pl1, pl2)
+      let! plPair = loadDecks deckPaths
+      let _ = runGameWithObserver (Broadcaster.subscribe) plPair
+      in ()
     }
 
   let usage () =
