@@ -271,6 +271,10 @@ module Amount =
           match actor with
           | Some actor -> actor |> Card.curAt |> float
           | None -> 0.0
+      | AG ->
+          match actor with
+          | Some actor -> actor |> Card.curAg |> float
+          | None -> 0.0
     in value * rate
 
   /// 継続的効果の変量を固定する。

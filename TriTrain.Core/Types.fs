@@ -58,6 +58,7 @@ module Types =
     | One
     | MaxHP  // unused
     | AT
+    | AG
 
   type Amount =
     VarType * Rate
@@ -186,6 +187,7 @@ module Types =
     | GameBegin
     | GameEnd             of GameResult
     | TurnBegin
+    | WindBlow
     | CardEnter           of CardId * Place
     | CardActBegin        of CardId * NamedOEffect
     | CardHpInc           of CardId * amount: int
