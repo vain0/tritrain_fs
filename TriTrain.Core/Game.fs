@@ -189,7 +189,14 @@ module Game =
   let rec procOEffect actorOpt (source: Place) oeff g =
     match oeff with
     | OEffectList oeffs ->
-        oeffs |> List.fold (flip (procOEffect actorOpt source)) g
+        oeffs |> List.fold (fun g oeff ->
+            let source =  // actor の最新の位置に更新する
+              actorOpt
+              |> Option.bind
+                  (fun actor -> g |> searchBoardFor (actor |> Card.cardId))
+              |> Option.getOr source
+            in g |> procOEffect actorOpt source oeff
+            ) g
     | GenToken cardSpecs ->
         g // TODO: トークン生成
 

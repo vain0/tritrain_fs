@@ -40,6 +40,13 @@ module T7 =
     | _ -> None
 
 [<RequireQualifiedAccess>]
+module Option =
+  let getOr x =
+    function
+    | Some x -> x
+    | None -> x
+
+[<RequireQualifiedAccess>]
 module List =
   /// List.zip を行う。
   /// 長さが異なる場合は、短いほうに合わせて縮める。
