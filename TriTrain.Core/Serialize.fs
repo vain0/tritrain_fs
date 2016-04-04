@@ -96,7 +96,7 @@ module DeckSpecSrc =
   let deserialize yaml =
     trial {
       let! src =
-        Yaml.customTryLoad<DeckSpecSrc> yaml
+        Yaml.myTryLoad<DeckSpecSrc> yaml
         |> Trial.mapFailure
             (fun es -> es |> List.map (fun e -> e.Message))
       let! spec = src |> DeckSpec.ofSrc
@@ -105,7 +105,7 @@ module DeckSpecSrc =
     }
 
   let serialize (self: DeckSpecSrc) =
-    Yaml.customDump self
+    Yaml.dump self
 
   let load path =
     try
