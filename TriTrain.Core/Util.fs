@@ -253,6 +253,9 @@ module TrialOperators =
   let failf fmt =
     kprintf fail fmt
 
+  let failfIfNone fmt =
+    kprintf failIfNone fmt
+
 module Yaml =
   open FsYaml
 
