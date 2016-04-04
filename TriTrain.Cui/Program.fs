@@ -3,6 +3,7 @@ namespace TriTrain.Cui
 open TriTrain.Core
 open TriTrain.Core.Serialize
 open System
+open System.Threading
 open Chessie.ErrorHandling
 
 module Program =
@@ -30,10 +31,40 @@ module Program =
       in ()
     }
 
+  /// 先攻・後攻を固定して2つのデッキを times 回戦わせ、その結果の集計を得る。
+  let testBattle times plPair =
+    let mutable win  = 0
+    let mutable lose = 0
+    let mutable draw = 0
+    let inc =
+      function
+      | Win PlLft   -> Interlocked.Increment(& win)
+      | Win PlRgt   -> Interlocked.Increment(& lose)
+      | Draw        -> Interlocked.Increment(& draw)
+      >> ignore
+    let gs =
+      [ for _ in 1..times ->
+          async {
+            return runGameWithObserver (ResultNotifier.observe inc) plPair
+          }
+      ]
+      |> Async.Parallel
+      |> Async.RunSynchronously
+    in (win, lose, draw)
+
+  let testBattleCommand deckPaths =
+    trial {
+      let! plPair = loadDecks deckPaths
+      let (win, lose, draw) = testBattle 10 plPair
+      let () = printfn "Win %d - Lose %d - Draw %d" win lose draw
+      in ()
+    }
+
   let usage () =
     """
 help                    Print this
 show deck1 deck2        Show a battle deck1 vs deck2
+test deck1 deck2        Simutate battles between deck1 and deck2
 """
 
   let rec procCommandArgs =
@@ -50,6 +81,11 @@ show deck1 deck2        Show a battle deck1 vs deck2
         procCommandArgs ("show" :: defaultDeckPaths)
     | "show" :: deckPath1 :: deckPath2 :: _ ->
         showGame (deckPath1, deckPath2)
+
+    | ["test"] ->
+        procCommandArgs ("test" :: defaultDeckPaths)
+    | "test" :: deckPath1 :: deckPath2 :: _ ->
+        testBattleCommand (deckPath1, deckPath2)
 
     | _ ->
         printfn "%s" (usage ()) |> pass
