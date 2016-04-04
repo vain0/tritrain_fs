@@ -250,6 +250,9 @@ module Observable =
 
 [<AutoOpen>]
 module TrialOperators =
+  let warnf value fmt =
+    kprintf (flip warn value) fmt
+
   let failf fmt =
     kprintf fail fmt
 
