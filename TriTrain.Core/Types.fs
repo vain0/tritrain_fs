@@ -189,9 +189,9 @@ module Types =
     | TurnBegin
     | WindBlow
     | CardEnter           of CardId * Place
-    | CardActBegin        of CardId * NamedOEffect
+    | CardBeginAction     of CardId * NamedOEffect
     | CardHpInc           of CardId * amount: int
-    | CardRegenerated     of CardId * amount: int
+    | CardRegenerate      of CardId * amount: int
     | CardDie             of CardId
     | CardGainEffect      of CardId * KEffect
     | CardLoseEffect      of CardId * KEffect
