@@ -105,7 +105,7 @@ module Game =
           g
           |> updateDeck plId
               (g |> deck plId |> flip List.append [cardId])
-          |> happen (CardRegenerated (cardId, card' |> Card.curHp))
+          |> happen (CardRegenerate (cardId, card' |> Card.curHp))
         
         else // 復活せず、墓地へ行く
           g

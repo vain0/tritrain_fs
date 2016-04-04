@@ -96,7 +96,7 @@ module Broadcaster =
             (g' |> curHp)
             amount
 
-    | CardRegenerated (cardId, amount) ->
+    | CardRegenerate (cardId, amount) ->
         printCardName g' cardId
         printfn " died and regenerated."
 
