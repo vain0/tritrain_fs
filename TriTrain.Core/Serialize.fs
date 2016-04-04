@@ -11,7 +11,7 @@ open FsYaml
 module Elem =
   let tryParse name =
     DU<Elem>.TryParse(name)
-    |> failIfNone (sprintf "Unknown element '%s'." name)
+    |> failfIfNone "Unknown element '%s'." name
 
 module Status =
   let ofAtAg at ag =
@@ -37,7 +37,7 @@ module OEffect =
   let tryFind name: Result<NamedOEffect, _> =
     OEffect.preset
     |> Map.tryFind name
-    |> failIfNone (sprintf "Skill '%s' doesn't exist." name)
+    |> failfIfNone "Skill '%s' doesn't exist." name
 
   let tryFindList names =
     trial {

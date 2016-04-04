@@ -1,6 +1,7 @@
 ﻿namespace TriTrain.Core
 
 open System
+open Printf
 open Chessie.ErrorHandling
 
 [<AutoOpen>]
@@ -115,18 +116,6 @@ module Map =
         | None      -> m
         | Some v'   -> m |> Map.add k v'
         ) Map.empty
-
-[<RequireQualifiedAccess>]
-module String =
-  let isNamey =
-    let acceptableChar ch =
-      Char.IsLetter(ch)
-      || Char.IsDigit(ch)
-      || Char.IsWhiteSpace(ch)
-      || (ch = '_')
-    let body s =
-      s |> String.forall acceptableChar
-    in body
 
 module Reflection =
   open Microsoft.FSharp.Reflection
@@ -246,6 +235,17 @@ module Observable =
       error err
 
     member this.AsObservable = obs
+
+[<AutoOpen>]
+module TrialOperators =
+  let warnf value fmt =
+    kprintf (flip warn value) fmt
+
+  let failf fmt =
+    kprintf fail fmt
+
+  let failfIfNone fmt =
+    kprintf failIfNone fmt
 
 module Yaml =
   open FsYaml
