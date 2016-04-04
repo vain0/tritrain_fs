@@ -2,6 +2,7 @@
 
 open TriTrain.Core
 open System
+open Chessie.ErrorHandling
 
 module Console =
   open Printf
@@ -16,3 +17,19 @@ module Console =
 
   let mcprintfn f color' =
     mcprintf (f >> flip (+) Environment.NewLine) color'
+
+module Trial =
+  /// Shows warning/error messages.
+  /// Returns exit code.
+  let runConsoleApp r: int =
+    match r with
+    | Pass () ->
+        0
+    | Warn ((), msgs) ->
+        eprintfn "Warning:"
+        msgs |> List.iter (eprintf "%s")
+        0
+    | Fail msgs ->
+        eprintfn "Error:"
+        msgs |> List.iter (eprintf "%s")
+        1

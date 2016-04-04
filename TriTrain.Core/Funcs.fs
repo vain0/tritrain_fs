@@ -341,6 +341,12 @@ module PlayerSpec =
   let name        (spec: PlayerSpec) = spec.Name
   let deck        (spec: PlayerSpec) = spec.Deck
 
+  let create name deck =
+    {
+      Name          = name
+      Deck          = deck
+    }
+
 module Player =
   let playerId    (pl: Player) = pl.PlayerId
   let spec        (pl: Player) = pl.Spec
@@ -363,3 +369,7 @@ module Player =
 
   let name =
     spec >> PlayerSpec.name
+
+module GameResult =
+  let all =
+    [Win PlLft; Win PlRgt; Draw]

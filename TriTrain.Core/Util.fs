@@ -40,6 +40,13 @@ module T7 =
     | _ -> None
 
 [<RequireQualifiedAccess>]
+module Seq =
+  let product xs ys =
+    seq {
+      for x in xs do
+      for y in ys -> (x, y) }
+
+[<RequireQualifiedAccess>]
 module Option =
   let getOr x =
     function
@@ -239,18 +246,6 @@ module Observable =
       error err
 
     member this.AsObservable = obs
-
-module Trial =
-  let eprintMessages r =
-    let eprintAll = List.iter (eprintfn "%s")
-    match r with
-    | Pass _ -> ()
-    | Warn (_, msgs) ->
-        eprintfn "Warning:"
-        eprintAll msgs
-    | Fail msgs ->
-        eprintfn "Fatal error:"
-        eprintAll msgs
 
 module ObjectElementSeq =
   open System
