@@ -6,6 +6,8 @@ open System
 open Chessie.ErrorHandling
 
 module Program =
+  let defaultDeckPaths =
+    ["l.tritrain_deck"; "r.tritrain_deck"]
 
   let loadDecks (deckPath1, deckPath2) =
     trial {
@@ -45,7 +47,7 @@ show deck1 deck2        Show a battle deck1 vs deck2
             |> procCommandArgs
 
     | ["show"] ->
-        procCommandArgs ["show"; "l.tritrain_deck"; "r.tritrain_deck"]
+        procCommandArgs ("show" :: defaultDeckPaths)
     | "show" :: deckPath1 :: deckPath2 :: _ ->
         showGame (deckPath1, deckPath2)
 
