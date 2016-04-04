@@ -15,7 +15,7 @@ module Status =
       if status |> Status.ag |> isInInterval 0 (MaxDefaultAG + 1) |> not then
         return! fail (sprintf "AG must be in range 0-%d." MaxDefaultAG)
       if status |> Status.total > StatusTotal then
-        return! fail (sprintf "Status total mustn't over %d." StatusTotal)
+        return! fail (sprintf "Status total mustn't be over %d." StatusTotal)
     }
 
 module CardSpec =
