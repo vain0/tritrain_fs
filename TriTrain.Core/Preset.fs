@@ -52,7 +52,7 @@ module OEffect =
   let give keff scope =
     OEffectToUnits (Give keff, scope)
 
-  let preset =
+  let presetList =
     [
       ("通常攻撃"     , attack 0.70 oppoFwd)
       ("後列薙ぎ"     , attack 0.30 oppoBwd)
@@ -92,6 +92,9 @@ module OEffect =
           (give (atInc (AT, 0.05) 2) homeAll)
           (give (agInc (AT, 0.05) 2) homeAll) )
     ]
+
+  let preset =
+    presetList
     |> List.map (fun (name, oeff) -> (name, (name, oeff)))
     |> Map.ofList
 
