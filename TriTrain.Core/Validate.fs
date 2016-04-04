@@ -9,20 +9,22 @@ module Status =
   let validate status =
     trial {
       if status |> Status.hp <= 0 then
-        return! fail "HP must be positive."
+        return! failf "HP must be positive: %d." (status |> Status.hp)
       if status |> Status.at < 0 then
-        return! fail "AT mustn't be negative."
+        return! failf "AT mustn't be negative: %d." (status |> Status.at)
       if status |> Status.ag |> isInInterval 0 (MaxDefaultAG + 1) |> not then
-        return! failf "AG must be in range 0-%d." MaxDefaultAG
+        return! failf "AG must be in range 0-%d: %d." MaxDefaultAG (status |> Status.ag)
       if status |> Status.total > StatusTotal then
-        return! failf "Status total mustn't be over %d." StatusTotal
+        return!
+          failf "Status total mustn't be over %d: %d."
+            StatusTotal (status |> Status.total)
     }
 
 module CardSpec =
   let internal validateName spec =
     trial {
       if spec |> CardSpec.name |> String.isNamey |> not then
-        return! fail "Card name is invalid."
+        return! failf "Card name is invalid: %s." (spec |> CardSpec.name)
     }
 
   let internal validateAbils spec =
@@ -57,7 +59,7 @@ module DeckSpec =
   let validate spec =
     trial {
       if spec |> DeckSpec.name |> String.isNamey |> not then
-        return! fail "Deck name is invalid."
+        return! failf "Deck name is invalid: %s." (spec |> DeckSpec.name)
       for cardSpec in spec |> DeckSpec.cards |> T7.toList do
         do! CardSpec.validate cardSpec
     }
