@@ -120,7 +120,7 @@ module Broadcaster =
           printfn " moves to %s."
             (stringizePlace dst)
 
-  let subscribe g: IDisposable =
+  let observe g: IDisposable =
     g
     |> Game.asObservable
     |> Observable.subscribe printEvent

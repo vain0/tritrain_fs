@@ -24,7 +24,7 @@ module Program =
   let showGame deckPaths =
     trial {
       let! plPair = loadDecks deckPaths
-      let _ = runGameWithObserver (Broadcaster.subscribe) plPair
+      let _ = runGameWithObserver (Broadcaster.observe) plPair
       in ()
     }
 
