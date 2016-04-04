@@ -58,6 +58,7 @@ module Types =
     | One
     | MaxHP  // unused
     | AT
+    | AG
 
   type Amount =
     VarType * Rate
