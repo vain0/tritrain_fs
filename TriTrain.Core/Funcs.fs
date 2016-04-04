@@ -369,3 +369,7 @@ module Player =
 
   let name =
     spec >> PlayerSpec.name
+
+module GameResult =
+  let all =
+    [Win PlLft; Win PlRgt; Draw]
