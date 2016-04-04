@@ -1,6 +1,7 @@
 ﻿namespace TriTrain.Core
 
 open System
+open Printf
 open Chessie.ErrorHandling
 
 [<AutoOpen>]
@@ -246,6 +247,11 @@ module Observable =
       error err
 
     member this.AsObservable = obs
+
+[<AutoOpen>]
+module TrialOperators =
+  let failf fmt =
+    kprintf fail fmt
 
 module Yaml =
   open FsYaml
