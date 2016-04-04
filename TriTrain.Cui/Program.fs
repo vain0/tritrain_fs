@@ -94,12 +94,29 @@ module Program =
       do printRoundRobinResultsAsList results
     }
 
+  let showEffectsCommand () =
+    trial {
+      let rows =
+        Preset.OEffect.presetList
+        |> List.map (fun (name, oeff) ->
+            sprintf "|%s|%s|" name (oeff |> Dump.dumpOEffect)
+            )
+        |> String.concat (Environment.NewLine)
+      let header =
+        """
+|Name|Text|
+|:---|:---|
+"""
+      do printfn "%s" (header + rows)
+    }
+
   let usage () =
     """
 help                    Print this
 show deck1 deck2        Show a battle deck1 vs deck2
 test deck1 deck2        Simutate battles between deck1 and deck2
 rr   decks...           Simulate round-robin tournament with decks
+effs                    Show preset effects
 """
 
   let (|RoundRobin|_|) =
@@ -131,6 +148,9 @@ rr   decks...           Simulate round-robin tournament with decks
         procCommandArgs ("round-robin" :: defaultDeckPaths)
      | RoundRobin :: deckPaths ->
         roundRobinCommand deckPaths
+
+    | ["effs"] ->
+        showEffectsCommand ()
 
     | _ ->
         printfn "%s" (usage ()) |> pass
