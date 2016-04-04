@@ -70,9 +70,13 @@ module Broadcaster =
         printfn "---- Turn %d ----"
           (g' |> Game.turn)
 
+        /// Wait input
         Console.ReadLine() |> ignore
 
-        /// Wait input
+    | WindBlow ->
+        printfn "--------"
+        printfn "The wind blows."
+
     | CardEnter (cardId, _) ->
         printCardName g' cardId
         printfn " is summoned!"

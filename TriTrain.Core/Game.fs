@@ -289,6 +289,23 @@ module Game =
       |> List.fold (fun g plId -> g |> body plId) g
     in g
 
+  /// 奇数ターンなら、後攻側の各カードが自己加速する
+  let procWindBlowPhase g =
+    if g |> turn |> flip (%) 2 |> (=) 0
+    then g
+    else
+      let keff = KEffect.create (AGInc (AG, 0.10)) (Some 1)
+      in
+        g
+        |> happen WindBlow
+        |> placeMap
+        |> Map.filter (fun _ cardId -> cardId |> CardId.owner = PlRgt)
+        |> Map.fold (fun g _ actorId ->
+            let actor   = g |> card actorId
+            let keff    = keff |> Amount.resolveKEffect (Some actor) actor
+            in g |> giveKEffect actorId keff
+            ) g
+
   /// カードにかかっている継続的効果の経過ターン数を更新する
   let updateDuration cardId g =
     let card = g |> card cardId 
@@ -342,7 +359,9 @@ module Game =
 
     | UpkeepPhase ->
         // TODO: BoT能力が誘発
-        g |> procPhase (ActionPhase Set.empty)
+        g
+        |> procWindBlowPhase
+        |> procPhase (ActionPhase Set.empty)
 
     | ActionPhase actedCards ->
         match g |> tryFindFastest actedCards with
