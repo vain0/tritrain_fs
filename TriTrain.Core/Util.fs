@@ -40,6 +40,13 @@ module T7 =
     | _ -> None
 
 [<RequireQualifiedAccess>]
+module Seq =
+  let product xs ys =
+    seq {
+      for x in xs do
+      for y in ys -> (x, y) }
+
+[<RequireQualifiedAccess>]
 module Option =
   let getOr x =
     function

@@ -52,12 +52,46 @@ module Program =
       |> Async.RunSynchronously
     in (win, lose, draw)
 
+  let stringizeResult (win, lose, draw) =
+    sprintf "Win %d - Lose %d - Draw %d" win lose draw
+
   let testBattleCommand deckPaths =
     trial {
       let! plPair = loadDecks deckPaths
-      let (win, lose, draw) = testBattle 10 plPair
-      let () = printfn "Win %d - Lose %d - Draw %d" win lose draw
+      let result = testBattle 10 plPair
+      let () = printfn "%s" (stringizeResult result)
       in ()
+    }
+
+  /// 総当たりでテストバトルを行う
+  let roundRobin times pls =
+    Seq.product pls pls
+    |> Seq.map (fun plPair -> async {
+        return (plPair, testBattle 10 plPair)
+        })
+    |> Async.Parallel
+    |> Async.RunSynchronously
+
+  // 総当たりの結果をリスト形式で表示する
+  let printRoundRobinResultsAsList results =
+    for ((pl1, pl2), result) in results do
+      printfn "%s vs %s: %s"
+        (pl1 |> PlayerSpec.name)
+        (pl2 |> PlayerSpec.name)
+        (stringizeResult result)
+
+  let roundRobinCommand deckPaths =
+    trial {
+      let! decks =
+        deckPaths
+        |> List.map (DeckSpecSrc.load)
+        |> Trial.collect
+      let pls =
+        [ for deck in decks ->
+            PlayerSpec.create (deck |> DeckSpec.name) deck ]
+      let results =
+        roundRobin 10 pls
+      do printRoundRobinResultsAsList results
     }
 
   let usage () =
@@ -65,7 +99,13 @@ module Program =
 help                    Print this
 show deck1 deck2        Show a battle deck1 vs deck2
 test deck1 deck2        Simutate battles between deck1 and deck2
+rr   decks...           Simulate round-robin tournament with decks
 """
+
+  let (|RoundRobin|_|) =
+    function
+    | "rr" | "round-robin" -> Some ()
+    | _ -> None
 
   let rec procCommandArgs =
     function
@@ -86,6 +126,11 @@ test deck1 deck2        Simutate battles between deck1 and deck2
         procCommandArgs ("test" :: defaultDeckPaths)
     | "test" :: deckPath1 :: deckPath2 :: _ ->
         testBattleCommand (deckPath1, deckPath2)
+
+    | [RoundRobin] ->
+        procCommandArgs ("round-robin" :: defaultDeckPaths)
+     | RoundRobin :: deckPaths ->
+        roundRobinCommand deckPaths
 
     | _ ->
         printfn "%s" (usage ()) |> pass
