@@ -106,13 +106,13 @@ module Broadcaster =
 
     | CardGainEffect (cardId, keff) ->
         printCardName g cardId      // 獲得前の状態を表示
-        printfn " gains %A."        // TODO: 分かりやすく表示する
-          keff
+        printfn " gains %s."        // TODO: 分かりやすく表示する
+          (Dump.dumpKEffect keff)
 
     | CardLoseEffect (cardId, keff) ->
         printCardName g' cardId
-        printfn " lost %A."
-          keff
+        printfn " lost %s."
+          (Dump.dumpKEffect keff)
 
     | CardMove moves ->
         for (cardId, _, dst) in moves do
