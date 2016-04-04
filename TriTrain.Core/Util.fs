@@ -240,18 +240,6 @@ module Observable =
 
     member this.AsObservable = obs
 
-module Trial =
-  let eprintMessages r =
-    let eprintAll = List.iter (eprintfn "%s")
-    match r with
-    | Pass _ -> ()
-    | Warn (_, msgs) ->
-        eprintfn "Warning:"
-        eprintAll msgs
-    | Fail msgs ->
-        eprintfn "Fatal error:"
-        eprintAll msgs
-
 module ObjectElementSeq =
   open System
   open System.Linq
