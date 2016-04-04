@@ -117,18 +117,6 @@ module Map =
         | Some v'   -> m |> Map.add k v'
         ) Map.empty
 
-[<RequireQualifiedAccess>]
-module String =
-  let isNamey =
-    let acceptableChar ch =
-      Char.IsLetter(ch)
-      || Char.IsDigit(ch)
-      || Char.IsWhiteSpace(ch)
-      || (ch = '_')
-    let body s =
-      s |> String.forall acceptableChar
-    in body
-
 module Reflection =
   open Microsoft.FSharp.Reflection
 

@@ -21,12 +21,6 @@ module Status =
     }
 
 module CardSpec =
-  let internal validateName spec =
-    trial {
-      if spec |> CardSpec.name |> String.isNamey |> not then
-        return! warnf () "Card name is invalid: %s." (spec |> CardSpec.name)
-    }
-
   let internal validateAbils spec =
     trial {
       if spec |> CardSpec.abils |> List.isEmpty |> not then
@@ -49,7 +43,6 @@ module CardSpec =
 
   let validate spec =
     trial {
-      do! spec |> validateName
       do! spec |> CardSpec.status |> Status.validate
       do! spec |> validateAbils
       do! spec |> validateSkills
@@ -58,8 +51,6 @@ module CardSpec =
 module DeckSpec =
   let validate spec =
     trial {
-      if spec |> DeckSpec.name |> String.isNamey |> not then
-        do! warnf () "Deck name is invalid: %s." (spec |> DeckSpec.name)
       for cardSpec in spec |> DeckSpec.cards |> T7.toList do
         do! CardSpec.validate cardSpec
     } |> failOnWarnings
