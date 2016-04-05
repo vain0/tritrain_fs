@@ -224,9 +224,8 @@ module Game =
               ) g
         in g
 
-  let rec procOEffect actorOpt source oeff g =
-    oeff
-    |> OEffect.toList
+  let rec procOEffectList actorOpt source oeffs g =
+    oeffs
     |> List.fold (fun g oeff ->
         let source =  // actor の最新の位置に更新する
           actorOpt
@@ -235,6 +234,11 @@ module Game =
           |> Option.getOr source
         in g |> procOEffectAtom actorOpt source oeff
         ) g
+
+  let procOEffect actorOpt source oeff g =
+    match oeff with
+    | OEffectAtom oeffa -> g |> procOEffectAtom actorOpt source oeffa
+    | OEffectList _     -> g |> procOEffectList actorOpt source (oeff |> OEffect.toList)
 
   /// 未行動な最速カード
   let tryFindFastest actedCards g: option<Vertex * CardId> =
@@ -252,20 +256,14 @@ module Game =
   /// カード actor の行動を処理する
   let procSkill actorId vx g =
     let actor = g |> card actorId
-    let skillOpt =
-      actor
-      |> Card.spec
-      |> CardSpec.skills
-      |> Map.tryFind (vx |> Row.ofVertex)
-    let g =
-      match skillOpt with
+    in
+      match actor |> Card.tryGetActionOn vx with
       | None -> g
       | Some ((_, oeff) as noeff) ->
           g
           |> happen (CardBeginAction (actorId, noeff))
           |> procOEffect (Some actor) (actorId |> CardId.owner, vx) oeff
-    in g
-
+    
   /// プレイヤー plId が位置 vx にデッキトップを召喚する。
   /// デッキが空なら何もしない。
   let summon plId vx g =

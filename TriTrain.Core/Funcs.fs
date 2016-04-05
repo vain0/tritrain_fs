@@ -256,6 +256,13 @@ module Card =
       |> setHp (card |> maxHp |> float |> (*) rate |> int)
     in card
 
+  /// カード actor が位置 vx で起こす行動を取得する。
+  let tryGetActionOn vx actor: option<NamedOEffect> =
+    actor
+    |> spec
+    |> CardSpec.skills
+    |> Map.tryFind (vx |> Row.ofVertex)
+
 module Amount =
   /// 変量を決定する
   let rec resolve (actor: option<Card>) (amount: Amount) =
