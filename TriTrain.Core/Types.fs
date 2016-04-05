@@ -93,6 +93,7 @@ module Types =
     | OEffectToUnits
       of OEffectToUnitType * NamedScope
     | Swap          of NamedScope
+    | Rotate        of ScopeSide
     | GenToken      of list<CardSpec>
 
   and NamedOEffect =

@@ -216,6 +216,10 @@ module Game =
         | [r1; r2] -> g |> swapCards r1 r2
         | _ -> g
 
+    | Rotate scopeSide ->
+        ScopeSide.sides (source |> fst) scopeSide
+        |> List.fold (fun g plId -> g |> rotateBoard plId) g
+
     | OEffectToUnits (typ, (_, scope)) ->
         let targets =
           scope |> Scope.placeSet source

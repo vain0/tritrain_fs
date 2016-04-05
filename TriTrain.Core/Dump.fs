@@ -17,6 +17,12 @@ module Dump =
     | AG -> "AG×" + string rate
     | One -> rate |> int |> string
 
+  let dumpScopeSide =
+    function
+    | Home -> "自陣"
+    | Oppo -> "敵陣"
+    | Both -> "両陣"
+
   let dumpScope (name, _) =
     name
 
@@ -65,6 +71,8 @@ module Dump =
         dumpOEffectToUnit (typ, scope)
     | Swap scope ->
         dumpScope scope + "を交代する。"
+    | Rotate scopeSide ->
+        dumpScopeSide scopeSide + "の回転を起こす。"
     | GenToken cards ->
         failwith "unimplemented"
 
