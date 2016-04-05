@@ -127,3 +127,25 @@ module OEffect =
       match oeff with
       | OEffectList oeffs -> oeffs |> List.collect toPresetList
       | _ -> []
+
+module Ability =
+  open Scope
+  open KEffect
+  open OEffect
+
+  let presetList: list<Ability> =
+    [
+      ("躍神"         , (WhenBoT, give (atInc (AT, 0.10) 3) self))
+      ("神速"         , (WhenEtB, give (agInc (One, 30.0) 1) self))
+    ]
+
+  let preset =
+    presetList
+    |> List.map (fun ((name, _) as abil) -> (name, abil))
+    |> Map.ofList
+
+  let internal presetSet: Set<(TriggerCond * OEffect)> =
+    presetList |> List.map snd |> set
+
+  let isPreset (abil: Ability) =
+    presetSet |> Set.contains (abil |> snd)

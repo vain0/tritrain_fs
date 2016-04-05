@@ -155,6 +155,19 @@ module OEffect =
     | OEffectList oeffs -> oeffs |> List.collect toList
     | OEffectAtom atom -> [atom]
 
+module Ability =
+  let name        ((name, _): Ability) = name
+  let condition   ((_, (cond, _)): Ability) = cond
+  let effect      ((_, (_, oeff)): Ability) = oeff
+
+  let add abil abils =
+    let cond = abil |> condition
+    let q =
+      match abils |> Map.tryFind cond with
+      | None    -> BatchedQueue.singleton abil
+      | Some q  -> q |> BatchedQueue.add abil
+    in abils |> Map.add cond q
+
 module Status =
   let hp (st: Status) = st.HP
   let at (st: Status) = st.AT
@@ -195,6 +208,9 @@ module Card =
 
   let elem =
     spec >> CardSpec.elem
+
+  let abils =
+    spec >> CardSpec.abils
 
   let maxHp =
     spec >> CardSpec.status >> Status.hp

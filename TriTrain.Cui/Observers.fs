@@ -87,6 +87,17 @@ module Broadcaster =
         printfn " does '%s'!"
           name
 
+    | CardAbilityTrigger (cardId, _, (name, _)) ->
+        printCardName g' cardId
+        printfn "'s '%s' triggered!"
+          name
+
+    | SolveTriggered (cardId, _, (name, _)) ->
+        printfn "----"
+        printCardName g' cardId
+        printfn "'s '%s' is solved."
+          name
+
     | CardHpInc (cardId, amount) ->
         let curHp = Game.card cardId >> Card.curHp
         do

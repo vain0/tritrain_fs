@@ -6,6 +6,7 @@ module Game =
   let cardMap     (g: Game) = g.CardMap
   let turn        (g: Game) = g.Turn
   let events      (g: Game) = g.Events
+  let triggered   (g: Game) = g.Triggered
 
   let create plLftSpec plRgtSpec =
     let (plLft, deckLft) = Player.create plLftSpec PlLft
@@ -69,6 +70,10 @@ module Game =
   let happen ev g =
     g |> tap (fun g -> (g |> events).Next(ev, g))
 
+  let trigger trig g =
+    { g with Triggered = trig :: (g |> triggered) }
+    |> happen (CardAbilityTrigger trig)
+
   let placeMap g: Map<Place, CardId> =
     PlayerId.all
     |> List.collect (fun plId ->
@@ -88,11 +93,24 @@ module Game =
   let cardIdsOnBoard g =
     g |> placeMap |> Map.valueSet
 
+  let triggerAbils cond cardId g =
+    match
+      ( g |> searchBoardFor cardId
+      , g |> card cardId |> Card.abils |> Map.tryFind cond
+      ) with
+    | (Some place, Some abils) ->
+        abils |> BatchedQueue.toList |> List.fold (fun g abil ->
+            g |> trigger (cardId, place, abil)
+            ) g
+    | _ -> g
+
   let dieCard cardId g =
     match g |> searchBoardFor cardId with
     | None -> g
     | Some (plId, vx) ->
-        // TODO: Die能力が誘発
+        // Die能力が誘発
+        let g         = g |> triggerAbils WhenDie cardId
+
         // 盤面から除去
         let board'    = g |> board plId |> Map.remove vx
         let g         = g |> updateBoard plId board'
@@ -263,7 +281,21 @@ module Game =
           g
           |> happen (CardBeginAction (actorId, noeff))
           |> procOEffect (Some actor) (actorId |> CardId.owner, vx) oeff
-    
+
+  /// 誘発した能力を解決する
+  let rec solveTriggered g =
+    match g |> triggered with
+    | [] -> g
+    | trig :: triggered' ->
+        let (cardId, source, (_, (_, oeff))) = trig
+        let source    = g |> searchBoardFor cardId |> Option.getOr source
+        let actor     = g |> card cardId
+        in
+          { g with Triggered = triggered' }
+          |> happen (SolveTriggered trig)
+          |> procOEffect (Some actor) source oeff
+          |> solveTriggered
+
   /// プレイヤー plId が位置 vx にデッキトップを召喚する。
   /// デッキが空なら何もしない。
   let summon plId vx g =
@@ -280,7 +312,7 @@ module Game =
           |> updateBoard plId
               (board |> Map.add vx cardId)
           |> happen (CardEnter (cardId, (plId, vx)))
-          // TODO: EtB能力が誘発
+          |> triggerAbils WhenEtB cardId
     in g
 
   let procSummonPhase plId g =
@@ -311,6 +343,11 @@ module Game =
       PlayerId.all
       |> List.fold (fun g plId -> g |> body plId) g
     in g
+
+  let triggerBoTAbils g =
+    g |> placeMap |> Map.fold (fun g vx cardId ->
+        g |> triggerAbils WhenBoT cardId
+        ) g
 
   /// 奇数ターンなら、後攻側の各カードが自己加速する
   let procWindBlowPhase g =
@@ -363,7 +400,7 @@ module Game =
   let endWith r g =
     g |> happen (GameEnd r)
 
-  let rec procPhase ph g: Game =
+  let rec procPhaseImpl ph g: Game =
     match ph with
     | SummonPhase ->
         let g =
@@ -381,8 +418,8 @@ module Game =
           | _       -> g |> endWith Draw
 
     | UpkeepPhase ->
-        // TODO: BoT能力が誘発
         g
+        |> triggerBoTAbils
         |> procWindBlowPhase
         |> procPhase (ActionPhase Set.empty)
 
@@ -408,6 +445,10 @@ module Game =
           match g |> turn with
           | 20 -> g |> endWith Draw
           | t  -> { g with Turn = t + 1 } |> procPhase SummonPhase
+
+  /// 誘発した能力を解決してからフェイズ処理をする
+  and procPhase ph g =
+    g |> solveTriggered |> procPhaseImpl ph
 
   let run g: Game =
     g
