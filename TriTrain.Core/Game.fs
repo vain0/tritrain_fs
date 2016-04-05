@@ -254,7 +254,7 @@ module Game =
     |> Option.map snd
 
   /// カード actor の行動を処理する
-  let procSkill actorId vx g =
+  let procAction actorId vx g =
     let actor = g |> card actorId
     in
       match actor |> Card.tryGetActionOn vx with
@@ -390,7 +390,7 @@ module Game =
         match g |> tryFindFastest actedCards with
         | Some (vx, actorId) ->
             g
-            |> procSkill actorId vx
+            |> procAction actorId vx
             |> procPhase (actedCards |> Set.add actorId |> ActionPhase)
         | None ->
             g |> procPhase RotatePhase
