@@ -63,10 +63,8 @@ module Dump =
           (dumpScope scope)
           (dumpKEffect keff)
 
-  let rec dumpOEffect oeff =
+  let rec dumpOEffectAtom oeff =
     match oeff with
-    | OEffectList oeffs ->
-        oeffs |> List.map dumpOEffect |> String.concat ""
     | OEffectToUnits (typ, scope) ->
         dumpOEffectToUnit (typ, scope)
     | Swap scope ->
@@ -75,6 +73,11 @@ module Dump =
         dumpScopeSide scopeSide + "の回転を起こす。"
     | GenToken cards ->
         failwith "unimplemented"
+
+  and dumpOEffect (oeffs: OEffect) =
+    oeffs |> OEffect.toList
+    |> List.map dumpOEffectAtom
+    |> String.concat ""
 
   and dumpStatus st =
     sprintf "HP%d/AT%d/AG%d"

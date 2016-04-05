@@ -150,10 +150,10 @@ module KEffect =
 module OEffect =
   let name ((name, _): NamedOEffect) = name
 
-  let rec toList oeff =
+  let rec toList oeff: list<OEffectAtom> =
     match oeff with
     | OEffectList oeffs -> oeffs |> List.collect toList
-    | _ -> [oeff]
+    | OEffectAtom atom -> [atom]
 
 module Status =
   let hp (st: Status) = st.HP

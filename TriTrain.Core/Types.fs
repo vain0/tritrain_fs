@@ -88,13 +88,16 @@ module Types =
     //| Unsummon
 
   /// 単発的効果 (Oneshot Effect)
-  type OEffect =
-    | OEffectList   of list<OEffect>
+  type OEffectAtom =
     | OEffectToUnits
       of OEffectToUnitType * NamedScope
     | Swap          of NamedScope
     | Rotate        of ScopeSide
     | GenToken      of list<CardSpec>
+
+  and OEffect =
+    | OEffectList   of list<OEffect>
+    | OEffectAtom   of OEffectAtom
 
   and NamedOEffect =
     string * OEffect

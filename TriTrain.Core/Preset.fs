@@ -38,19 +38,19 @@ module OEffect =
     [ oeff1; oeff2 ] |> OEffectList
 
   let attack rate scope =
-    OEffectToUnits (Damage (AT, rate), scope)
+    OEffectToUnits (Damage (AT, rate), scope) |> OEffectAtom
 
   let heal rate scope =
-    OEffectToUnits (Heal (AT, rate), scope)
+    OEffectToUnits (Heal (AT, rate), scope) |> OEffectAtom
 
   let death rate scope =
-    OEffectToUnits (Death (AT, rate), scope)
+    OEffectToUnits (Death (AT, rate), scope) |> OEffectAtom
 
   let sacrifice scope =
-    OEffectToUnits (Death (One, 100.0), scope)
+    OEffectToUnits (Death (One, 100.0), scope) |> OEffectAtom
 
   let give keff scope =
-    OEffectToUnits (Give keff, scope)
+    OEffectToUnits (Give keff, scope) |> OEffectAtom
 
   let presetList =
     [
@@ -76,8 +76,8 @@ module OEffect =
       ("旋風"         , give (agInc (AT, 0.15) 2) homeBwd)
       ("天翔"         , give (agInc (AT, 0.10) 2) homeAll)
 
-      ("仁王立ち"     , Swap selfAndFwd)
-      ("退避"         , Swap selfAndRgt)
+      ("仁王立ち"     , Swap selfAndFwd |> OEffectAtom)
+      ("退避"         , Swap selfAndRgt |> OEffectAtom)
 
       ("転生印"       , give (regenerate 0.50 1) homeFwd)
 
@@ -106,14 +106,14 @@ module OEffect =
       |> Map.toList
       |> List.map (fun (_, (_, oeff)) -> oeff)
       |> Set.ofList
-    let body oeff =
+    let rec body oeff =
       let b1 =
         oeffSet |> Set.contains oeff
       let b2 =
         match oeff with
+        | OEffectAtom _ -> false
         | OEffectList oeffs ->
-            (oeffs |> List.forall (fun oeff -> oeffSet |> Set.contains oeff))
-        | _ -> false
+            oeffs |> List.forall body
       in b1 || b2
     in body
 

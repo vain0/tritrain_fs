@@ -197,17 +197,8 @@ module Game =
           )
     in g |> moveCards moves
 
-  let rec procOEffect actorOpt (source: Place) oeff g =
+  let rec procOEffectAtom actorOpt (source: Place) oeff g =
     match oeff with
-    | OEffectList oeffs ->
-        oeffs |> List.fold (fun g oeff ->
-            let source =  // actor の最新の位置に更新する
-              actorOpt
-              |> Option.bind
-                  (fun actor -> g |> searchBoardFor (actor |> Card.cardId))
-              |> Option.getOr source
-            in g |> procOEffect actorOpt source oeff
-            ) g
     | GenToken cardSpecs ->
         g // TODO: トークン生成
 
@@ -232,6 +223,18 @@ module Game =
               g |> procOEffectToUnit actorOpt cardId typ
               ) g
         in g
+
+  let rec procOEffect actorOpt source oeff g =
+    oeff
+    |> OEffect.toList
+    |> List.fold (fun g oeff ->
+        let source =  // actor の最新の位置に更新する
+          actorOpt
+          |> Option.bind
+              (fun actor -> g |> searchBoardFor (actor |> Card.cardId))
+          |> Option.getOr source
+        in g |> procOEffectAtom actorOpt source oeff
+        ) g
 
   /// 未行動な最速カード
   let tryFindFastest actedCards g: option<Vertex * CardId> =
