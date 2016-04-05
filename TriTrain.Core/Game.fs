@@ -186,6 +186,17 @@ module Game =
       | _ -> g
     in g
 
+  /// 盤面を回転させる
+  let rotateBoard plId g =
+    let moves =
+      g
+      |> board plId
+      |> Board.rotate
+      |> List.map (fun (cardId, vx, vx') ->
+          (cardId, (plId, vx), (plId, vx'))
+          )
+    in g |> moveCards moves
+
   let rec procOEffect actorOpt (source: Place) oeff g =
     match oeff with
     | OEffectList oeffs ->
@@ -204,6 +215,10 @@ module Game =
         match scope |> Scope.placeSet source |> Set.toList with
         | [r1; r2] -> g |> swapCards r1 r2
         | _ -> g
+
+    | Rotate scopeSide ->
+        ScopeSide.sides (source |> fst) scopeSide
+        |> List.fold (fun g plId -> g |> rotateBoard plId) g
 
     | OEffectToUnits (typ, (_, scope)) ->
         let targets =
@@ -381,16 +396,7 @@ module Game =
 
     | RotatePhase ->
         PlayerId.all
-        |> List.fold (fun g plId ->
-            let moves =
-              g
-              |> board plId
-              |> Board.rotate
-              |> List.map (fun (cardId, vx, vx') ->
-                  (cardId, (plId, vx), (plId, vx'))
-                  )
-            in g |> moveCards moves
-            ) g
+        |> List.fold (fun g plId -> g |> rotateBoard plId) g
         |> procPhase PassPhase
 
     | PassPhase ->
