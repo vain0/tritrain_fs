@@ -66,15 +66,15 @@ module ScopeSide =
   let all =
     DU<ScopeSide>.UnitCases
 
-module Scope =
-  let name ((name, _): NamedScope) = name
-
   /// plId からみた side 側のリスト
   let sides plId side =
     match side with
     | Home -> [plId]
     | Oppo -> [plId |> PlayerId.inverse]
     | Both -> PlayerId.all
+
+module Scope =
+  let name ((name, _): NamedScope) = name
 
   let rec placeSet ((plId, vx) as source) scope: Set<Place> =
     match scope with
@@ -89,21 +89,21 @@ module Scope =
         match vx |> Row.ofVertex with
         | FwdRow -> Set.empty
         | BwdRow ->
-            [ for pi in sides plId side -> (pi, Fwd) ]
+            [ for pi in ScopeSide.sides plId side -> (pi, Fwd) ]
             |> Set.ofList
 
     | BwdSide side ->
         match vx |> Row.ofVertex with
         | FwdRow ->
             [
-              for pi in sides plId side do
+              for pi in ScopeSide.sides plId side do
                 for p in [Lft; Rgt] -> (pi, p)
             ]
             |> Set.ofList
         | BwdRow -> Set.empty
 
     | LftSide side ->
-        let sides = sides plId side
+        let sides = ScopeSide.sides plId side
         let fwd =
           match vx with
           | Lft -> []
@@ -115,7 +115,7 @@ module Scope =
         in (List.append fwd lft) |> Set.ofList
 
     | RgtSide side ->
-        let sides = sides plId side
+        let sides = ScopeSide.sides plId side
         let fwd =
           match vx with
           | Lft | Fwd -> [ for side in sides -> (side, Fwd) ]
