@@ -18,6 +18,14 @@ module Console =
   let mcprintfn f color' =
     mcprintf (f >> flip (+) Environment.NewLine) color'
 
+  let parseCommandLine =
+    function
+    | null -> fail "No command."
+    | line ->
+        (line: string).Split([| ' ' |], StringSplitOptions.RemoveEmptyEntries)
+        |> Array.toList
+        |> pass
+
 module Trial =
   /// Shows warning/error messages.
   /// Returns exit code.
