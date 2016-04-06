@@ -105,14 +105,16 @@ module OEffect =
 
   /// プリセットに含まれる効果か？
   /// (名前は異なっていてもよい。)
-  let rec isPreset oeff =
-    let b1 =
-      presetSet |> Set.contains oeff
+  let isPreset oeff =
+    presetSet |> Set.contains oeff
+
+  /// プリセットに含まれる効果の組み合わせか？
+  let rec isPresetList oeff =
+    let b1 = oeff |> isPreset
     let b2 =
       match oeff with
-      | OEffectAtom _ -> false
-      | OEffectList oeffs ->
-          oeffs |> List.forall isPreset
+      | OEffectList oeffs -> oeffs |> List.forall isPresetList
+      | OEffectAtom oeffa -> false
     in b1 || b2
 
   /// 効果 oeff を構成する部分効果のうち、プリセットであるもののリスト
