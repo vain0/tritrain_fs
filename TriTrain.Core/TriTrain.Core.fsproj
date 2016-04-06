@@ -60,6 +60,7 @@
     <Compile Include="Funcs.fs" />
     <Compile Include="Game.fs" />
     <Compile Include="Preset.fs" />
+    <Compile Include="Random.fs" />
     <Compile Include="Validate.fs" />
     <Compile Include="Serialize.fs" />
     <Compile Include="Dump.fs" />

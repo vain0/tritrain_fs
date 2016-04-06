@@ -14,14 +14,6 @@ module Elem =
     DU<Elem>.TryParse(name)
     |> failfIfNone "Unknown element '%s'." name
 
-module Status =
-  let ofAtAg at ag =
-    {
-      HP = StatusTotal - (at + ag)
-      AT = at
-      AG = ag
-    }
-
 module OEffect =
   let combineMany skills: option<Skill> =
     match skills with

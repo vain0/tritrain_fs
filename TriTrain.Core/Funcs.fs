@@ -174,6 +174,13 @@ module Status =
   let at (st: Status) = st.AT
   let ag (st: Status) = st.AG
 
+  let ofAtAg at ag =
+    {
+      HP = StatusTotal - (at + ag)
+      AT = at
+      AG = ag
+    }
+
   let toList st =
     [ st |> hp; st |> at; st |> ag ]
 

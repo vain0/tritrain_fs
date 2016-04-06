@@ -41,6 +41,9 @@ module T7 =
         (x0, x1, x2, x3, x4, x5, x6) |> Some
     | _ -> None
 
+  let init (f: int -> 't): T7<'t> =
+    (f 0, f 1, f 2, f 3, f 4, f 5, f 6)
+
 [<RequireQualifiedAccess>]
 module Seq =
   let product xs ys =
@@ -153,6 +156,13 @@ module Random =
   let roll (prob: float) =
     rng.NextDouble() < prob
     || prob >= 100.0
+
+  let element xs =
+    let len = xs |> Seq.length
+    in
+      if len = 0
+      then None
+      else xs |> Seq.item (rng.Next(0, len - 1)) |> Some
 
 [<RequireQualifiedAccess>]
 module Observable =
