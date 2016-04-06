@@ -33,8 +33,7 @@ module CardSpec =
       let skills =
         spec
         |> CardSpec.skills
-        |> Map.valueSet
-        |> Set.toList
+        |> Map.valueList
         |> List.map snd // discard names
       let kount =
         (abils |> List.length)
