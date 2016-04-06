@@ -1,4 +1,5 @@
-﻿namespace TriTrain.Core
+﻿[<AutoOpen>]
+module TriTrain.Core.Util
 
 open System
 open Printf
