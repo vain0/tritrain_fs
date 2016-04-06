@@ -24,12 +24,10 @@ effs                    Show preset effects
   let rec procCommandArgs =
     function
     | [] ->
-        match Console.ReadLine() with
-        | null | "" -> () |> pass
-        | line ->
-            line.Split([| ' ' |], StringSplitOptions.RemoveEmptyEntries)
-            |> Array.toList
-            |> procCommandArgs
+        trial {
+          let! args = Console.ReadLine() |> Console.parseCommandLine
+          return! args |> procCommandArgs
+        }
 
     | ["show"] ->
         procCommandArgs ("show" :: defaultDeckPaths)
