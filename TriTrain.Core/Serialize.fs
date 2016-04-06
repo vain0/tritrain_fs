@@ -14,7 +14,7 @@ module Elem =
     DU<Elem>.TryParse(name)
     |> failfIfNone "Unknown element '%s'." name
 
-module OEffect =
+module Skill =
   let combineMany skills: option<Skill> =
     match skills with
     | [] -> None
@@ -60,8 +60,8 @@ module CardSpec =
   let ofSrc (src: CardSpecSrc) =
     trial {
       let! elem       = Elem.tryParse (src.Elem)
-      let! skillFwd   = src.SkillFwd |> OEffect.tryFindList
-      let! skillBwd   = src.SkillBwd |> OEffect.tryFindList
+      let! skillFwd   = src.SkillFwd |> Skill.tryFindList
+      let! skillBwd   = src.SkillBwd |> Skill.tryFindList
       let! abils      = src.Abils |> Ability.ofSrc
       let skills =
         [
