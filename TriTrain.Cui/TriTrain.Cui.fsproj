@@ -64,6 +64,8 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Util.fs" />
     <Compile Include="Observers.fs" />
+    <Compile Include="TestBattle.fs" />
+    <Compile Include="PrintPreset.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
