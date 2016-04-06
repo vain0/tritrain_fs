@@ -8,7 +8,7 @@ open Chessie.ErrorHandling
 
 module Program =
   let defaultDeckPaths =
-    ["l.tritrain_deck"; "r.tritrain_deck"]
+    ["l.trtrdeck"; "r.trtrdeck"]
 
   let loadDecks (deckPath1, deckPath2) =
     trial {
