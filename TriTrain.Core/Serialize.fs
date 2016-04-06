@@ -30,7 +30,7 @@ module Skill =
     |> Map.tryFind name
     |> failfIfNone "Skill '%s' doesn't exist." name
 
-  let tryFindList names =
+  let ofSrc names =
     trial {
       let! skills =
         names
@@ -60,8 +60,8 @@ module CardSpec =
   let ofSrc (src: CardSpecSrc) =
     trial {
       let! elem       = Elem.tryParse (src.Elem)
-      let! skillFwd   = src.SkillFwd |> Skill.tryFindList
-      let! skillBwd   = src.SkillBwd |> Skill.tryFindList
+      let! skillFwd   = src.SkillFwd |> Skill.ofSrc
+      let! skillBwd   = src.SkillBwd |> Skill.ofSrc
       let! abils      = src.Abils |> Ability.ofSrc
       let skills =
         [
