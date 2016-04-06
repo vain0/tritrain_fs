@@ -21,30 +21,38 @@ module Status =
     }
 
 module CardSpec =
-  let internal validateAbils spec =
-    trial {
-      if spec |> CardSpec.abils |> List.isEmpty |> not then
-        return! () |> warn "Card may have no abilities yet."
-    }
-
   let internal validateSkills spec =
+   
     trial {
+      let abils =
+        spec
+        |> CardSpec.abils
+        |> Map.valueSet
+        |> Set.toList
+        |> List.collect (BatchedQueue.toList)
       let skills =
         spec
         |> CardSpec.skills
         |> Map.valueSet
         |> Set.toList
         |> List.map snd // discard names
+      let kount =
+        (abils |> List.length)
+        + (skills |> List.collect OEffect.toPresetList |> List.length)
+
+      for abil in abils do
+        if abil |> Ability.isPreset |> not then
+          do! warnf () "'%s' isn't a preset ability." (abil |> fst)
+
       if skills |> List.forall (OEffect.isPreset) |> not then
         return! () |> warn "Card may have only preset effects."
-      if skills |> List.collect OEffect.toPresetList |> List.length > 4 then
+      if kount > 4 then
         return! () |> warn "A card may have up to 4 effects."
     }
 
   let validate spec =
     trial {
       do! spec |> CardSpec.status |> Status.validate
-      do! spec |> validateAbils
       do! spec |> validateSkills
     }
 

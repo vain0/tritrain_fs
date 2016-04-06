@@ -88,13 +88,16 @@ module Types =
     //| Unsummon
 
   /// 単発的効果 (Oneshot Effect)
-  type OEffect =
-    | OEffectList   of list<OEffect>
+  type OEffectAtom =
     | OEffectToUnits
       of OEffectToUnitType * NamedScope
     | Swap          of NamedScope
     | Rotate        of ScopeSide
     | GenToken      of list<CardSpec>
+
+  and OEffect =
+    | OEffectList   of list<OEffect>
+    | OEffectAtom   of OEffectAtom
 
   and NamedOEffect =
     string * OEffect
@@ -108,10 +111,7 @@ module Types =
     //| WhenDealt
 
   and Ability =
-    {
-      Cond          : TriggerCond
-      Effect        : NamedOEffect
-    }
+    string * (TriggerCond * OEffect)
 
   and Status =
     {
@@ -125,7 +125,7 @@ module Types =
       Name          : CardName
       Status        : Status
       Elem          : Elem
-      Abils         : list<Ability>
+      Abils         : Map<TriggerCond, BatchedQueue<Ability>>
       Skills        : Map<Row, NamedOEffect>
     }
 
@@ -173,6 +173,9 @@ module Types =
       Trash         : Trash
     }
 
+  type Triggered =
+    CardId * Place * Ability
+
   type Phase =
     | SummonPhase
     | UpkeepPhase
@@ -190,6 +193,8 @@ module Types =
     | TurnBegin
     | WindBlow
     | CardEnter           of CardId * Place
+    | CardAbilityTrigger  of Triggered
+    | SolveTriggered      of Triggered
     | CardBeginAction     of CardId * NamedOEffect
     | CardHpInc           of CardId * amount: int
     | CardRegenerate      of CardId * amount: int
@@ -206,16 +211,13 @@ module Types =
       Turn          : int
 
       /// 誘発し、まだ処理されていない誘発型能力
-      Triggered     : list<OEffect>
+      Triggered     : list<Triggered>
 
       Events        : Observable.Source<GameEvent * Game>
     }
 
   type AbilitySrc =
-    {
-      Cond          : string
-      Effect        : string
-    }
+    list<string>
 
   /// ユーザが記述するカード仕様
   type CardSpecSrc =
@@ -224,7 +226,7 @@ module Types =
       AT            : int
       AG            : int
       Elem          : string
-      Abils         : list<AbilitySrc>
+      Abils         : AbilitySrc
       SkillFwd      : list<string>
       SkillBwd      : list<string>
     }

@@ -2,6 +2,7 @@
 
 open TriTrain.Core
 open TriTrain.Core.Validate
+open TriTrain.Core.Preset
 open System
 open System.IO
 open Reflection
@@ -22,8 +23,6 @@ module Status =
     }
 
 module OEffect =
-  open TriTrain.Core.Preset
-
   let combineMany skills: option<NamedOEffect> =
     match skills with
     | [] -> None
@@ -49,13 +48,29 @@ module OEffect =
         skills |> combineMany
     }
 
+module Ability =
+  let ofSrc (src: AbilitySrc) =
+    trial {
+      let! abils =
+        src
+        |> List.map (fun name ->
+            Ability.preset |> Map.tryFind name
+            |> failfIfNone "Ability '%s' doesn't exist." name
+            )
+        |> Trial.collect
+      return
+        abils |> List.fold (fun m abil ->
+            m |> Ability.add abil
+            ) Map.empty
+    }
+
 module CardSpec =
   let ofSrc (src: CardSpecSrc) =
     trial {
       let! elem       = Elem.tryParse (src.Elem)
       let! skillFwd   = src.SkillFwd |> OEffect.tryFindList
       let! skillBwd   = src.SkillBwd |> OEffect.tryFindList
-      let abils       = [] // TODO: parse src.Abils
+      let! abils      = src.Abils |> Ability.ofSrc
       let skills =
         [
           (FwdRow, skillFwd)
