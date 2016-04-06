@@ -99,8 +99,11 @@ module Map =
   let keySet (m: Map<'k, 'v>): Set<'k> =
     m |> Map.toList |> List.map fst |> Set.ofList
 
+  let valueList (m: Map<'k, 'v>): list<'v> =
+    m |> Map.toList |> List.map snd
+
   let valueSet (m: Map<'k, 'v>): Set<'v> =
-    m |> Map.toList |> List.map snd |> Set.ofList
+    m |> valueList |> Set.ofList
 
   let pullBack value m =
     m

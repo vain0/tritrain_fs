@@ -98,24 +98,24 @@ module OEffect =
     |> List.map (fun (name, oeff) -> (name, (name, oeff)))
     |> Map.ofList
 
+  let presetSet: Set<OEffect> =
+    preset
+    |> Map.valueSet
+    |> Set.map snd  // discard names
+
   /// プリセットに含まれる効果か？
   /// (名前は異なっていてもよい。)
-  let isPreset: OEffect -> bool =
-    let oeffSet =
-      preset
-      |> Map.toList
-      |> List.map (fun (_, (_, oeff)) -> oeff)
-      |> Set.ofList
-    let rec body oeff =
-      let b1 =
-        oeffSet |> Set.contains oeff
-      let b2 =
-        match oeff with
-        | OEffectAtom _ -> false
-        | OEffectList oeffs ->
-            oeffs |> List.forall body
-      in b1 || b2
-    in body
+  let isPreset oeff =
+    presetSet |> Set.contains oeff
+
+  /// プリセットに含まれる効果の組み合わせか？
+  let rec isPresetList oeff =
+    let b1 = oeff |> isPreset
+    let b2 =
+      match oeff with
+      | OEffectList oeffs -> oeffs |> List.forall isPresetList
+      | OEffectAtom oeffa -> false
+    in b1 || b2
 
   /// 効果 oeff を構成する部分効果のうち、プリセットであるもののリスト
   /// プリセットでないものが含まれているなら、それらは無視される。
