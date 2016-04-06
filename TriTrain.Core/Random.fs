@@ -18,16 +18,20 @@ module Random =
   let abil () =
     Preset.Ability.presetList |> Random.element |> Option.get
 
-  let skill () =
+  let skillAtom () =
     Preset.Skill.presetList |> Random.element |> Option.get
+
+  /// n 個の基本行動からなる行動
+  let skillList n =
+    List.init n (fun _ -> skillAtom ())
+    |> List.map SkillAtom
+    |> SkillList
 
   /// TODO: スキルの分配も乱択にする。能力に対応する。
   let cardSpec (): CardSpec =
     let skills =
-      [ (FwdRow, skill ())
-        (FwdRow, skill ())
-        (BwdRow, skill ())
-        (BwdRow, skill ())
+      [ (FwdRow, skillList 2)
+        (BwdRow, skillList 2)
       ]
       |> Map.ofList
     let abils =

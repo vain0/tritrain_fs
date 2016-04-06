@@ -15,16 +15,6 @@ module Elem =
     |> failfIfNone "Unknown element '%s'." name
 
 module Skill =
-  let combineMany skills: option<Skill> =
-    match skills with
-    | [] -> None
-    | [skill] -> Some skill
-    | skills ->
-        let (names, skills) = skills |> List.unzip
-        let name    = String.Join(" & ", names)
-        let skill   = skills |> OEffectList
-        in (name, skill) |> Some
-
   let tryFind name: Result<Skill, _> =
     Skill.preset
     |> Map.tryFind name
@@ -37,7 +27,7 @@ module Skill =
         |> List.map tryFind
         |> Trial.collect
       return
-        skills |> combineMany
+        skills |> Skill.ofList
     }
 
 module Ability =
@@ -69,7 +59,6 @@ module CardSpec =
           (BwdRow, skillBwd)
         ]
         |> Map.ofList
-        |> Map.choose (fun k -> id)
       return
         {
           Name      = src.Name

@@ -34,25 +34,25 @@ module Skill =
   open Scope
   open KEffect
 
-  let pair oeff1 oeff2 =
-    [ oeff1; oeff2 ] |> OEffectList
+  let pair oeffs1 oeffs2 =
+    oeffs1 @ oeffs2
 
   let attack rate scope =
-    OEffectToUnits (Damage (AT, rate), scope) |> OEffectAtom
+    [OEffectToUnits (Damage (AT, rate), scope)]
 
   let heal rate scope =
-    OEffectToUnits (Heal (AT, rate), scope) |> OEffectAtom
+    [OEffectToUnits (Heal (AT, rate), scope)]
 
   let death rate scope =
-    OEffectToUnits (Death (AT, rate), scope) |> OEffectAtom
+    [OEffectToUnits (Death (AT, rate), scope)]
 
   let sacrifice scope =
-    OEffectToUnits (Death (One, 100.0), scope) |> OEffectAtom
+    [OEffectToUnits (Death (One, 100.0), scope)]
 
   let give keff scope =
-    OEffectToUnits (Give keff, scope) |> OEffectAtom
+    [OEffectToUnits (Give keff, scope)]
 
-  let presetList =
+  let presetList: list<SkillAtom> =
     [
       ("通常攻撃"     , attack 0.70 oppoFwd)
       ("後列薙ぎ"     , attack 0.30 oppoBwd)
@@ -76,8 +76,8 @@ module Skill =
       ("旋風"         , give (agInc (AT, 0.15) 2) homeBwd)
       ("天翔"         , give (agInc (AT, 0.10) 2) homeAll)
 
-      ("仁王立ち"     , Swap selfAndFwd |> OEffectAtom)
-      ("退避"         , Swap selfAndRgt |> OEffectAtom)
+      ("仁王立ち"     , [Swap selfAndFwd])
+      ("退避"         , [Swap selfAndRgt])
 
       ("転生印"       , give (regenerate 0.50 1) homeFwd)
 
@@ -93,40 +93,40 @@ module Skill =
           (give (agInc (AT, 0.05) 2) homeAll) )
     ]
 
-  let preset =
+  let preset: Map<Name, Skill> =
     presetList
-    |> List.map (fun (name, oeff) -> (name, (name, oeff)))
+    |> List.map (fun skillAtom -> (skillAtom |> fst, skillAtom |> SkillAtom))
     |> Map.ofList
 
-  let presetSet: Set<OEffect> =
+  let internal presetOEffectsSet: Set<list<OEffect>> =
     preset
     |> Map.valueSet
-    |> Set.map snd  // discard names
+    |> Set.map Skill.toEffectList
 
-  /// プリセットに含まれる効果か？
+  /// プリセットに含まれる行動か？
   /// (名前は異なっていてもよい。)
-  let isPreset oeff =
-    presetSet |> Set.contains oeff
+  let isPreset skill =
+    presetOEffectsSet |> Set.contains (skill |> Skill.toEffectList)
 
-  /// プリセットに含まれる効果の組み合わせか？
-  let rec isPresetList oeff =
-    let b1 = oeff |> isPreset
+  /// プリセットに含まれる行動の組み合わせか？
+  let isPresetList skill =
+    let b1 = skill |> isPreset
     let b2 =
-      match oeff with
-      | OEffectList oeffs -> oeffs |> List.forall isPresetList
-      | OEffectAtom oeffa -> false
+      match skill with
+      | SkillAtom _ -> false
+      | SkillList skills -> skills |> List.forall isPreset
     in b1 || b2
 
-  /// 効果 oeff を構成する部分効果のうち、プリセットであるもののリスト
+  /// 行動を構成する部分行動のうち、プリセットであるもののリスト
   /// プリセットでないものが含まれているなら、それらは無視される。
-  let rec toPresetList oeff: list<OEffect> =
-    if oeff |> isPreset
+  let rec toPresetList skill: list<Skill> =
+    if skill |> isPreset
     then
-      [oeff]
+      [skill]
     else
-      match oeff with
-      | OEffectList oeffs -> oeffs |> List.collect toPresetList
-      | _ -> []
+      match skill with
+      | SkillAtom _ -> []
+      | SkillList skills -> skills |> List.collect toPresetList
 
 module Ability =
   open Scope
@@ -144,7 +144,7 @@ module Ability =
     |> List.map (fun ((name, _) as abil) -> (name, abil))
     |> Map.ofList
 
-  let internal presetSet: Set<(TriggerCond * OEffect)> =
+  let internal presetSet: Set<(TriggerCond * list<OEffect>)> =
     presetList |> List.map snd |> set
 
   let isPreset (abil: Ability) =

@@ -215,7 +215,7 @@ module Game =
           )
     in g |> moveCards moves
 
-  let rec procOEffectAtom actorOpt (source: Place) oeff g =
+  let rec procOEffect actorOpt (source: Place) oeff g =
     match oeff with
     | GenToken cardSpecs ->
         g // TODO: トークン生成
@@ -250,13 +250,8 @@ module Game =
           |> Option.bind
               (fun actor -> g |> searchBoardFor (actor |> Card.cardId))
           |> Option.getOr source
-        in g |> procOEffectAtom actorOpt source oeff
+        in g |> procOEffect actorOpt source oeff
         ) g
-
-  let procOEffect actorOpt source oeff g =
-    match oeff with
-    | OEffectAtom oeffa -> g |> procOEffectAtom actorOpt source oeffa
-    | OEffectList _     -> g |> procOEffectList actorOpt source (oeff |> OEffect.toList)
 
   /// 未行動な最速カード
   let tryFindFastest actedCards g: option<Vertex * CardId> =
@@ -277,23 +272,25 @@ module Game =
     in
       match actor |> Card.tryGetActionOn vx with
       | None -> g
-      | Some ((_, oeff) as skill) ->
+      | Some skill ->
           g
           |> happen (CardBeginAction (actorId, skill))
-          |> procOEffect (Some actor) (actorId |> CardId.owner, vx) oeff
+          |> procOEffectList
+              (Some actor) (actorId |> CardId.owner, vx)
+              (skill |> Skill.toEffectList)
 
   /// 誘発した能力を解決する
   let rec solveTriggered g =
     match g |> triggered with
     | [] -> g
     | trig :: triggered' ->
-        let (cardId, source, (_, (_, oeff))) = trig
+        let (cardId, source, (_, (_, oeffs))) = trig
         let source    = g |> searchBoardFor cardId |> Option.getOr source
         let actor     = g |> card cardId
         in
           { g with Triggered = triggered' }
           |> happen (SolveTriggered trig)
-          |> procOEffect (Some actor) source oeff
+          |> procOEffectList (Some actor) source oeffs
           |> solveTriggered
 
   /// プレイヤー plId が位置 vx にデッキトップを召喚する。

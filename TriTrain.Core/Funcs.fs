@@ -1,5 +1,6 @@
 ﻿namespace TriTrain.Core
 
+open System
 open Reflection
 
 module Id =
@@ -147,14 +148,28 @@ module KEffect =
       Duration    = duration
     }
 
-module OEffect =
-  let rec toList oeff: list<OEffectAtom> =
-    match oeff with
-    | OEffectList oeffs -> oeffs |> List.collect toList
-    | OEffectAtom atom -> [atom]
-
 module Skill =
-  let name ((name, _): Skill) = name
+  let rec toAtomList =
+    function
+    | SkillAtom (name, oeffs) -> [(name, oeffs)]
+    | SkillList skills -> skills |> List.collect toAtomList
+
+  let toNameList skill =
+    skill |> toAtomList |> List.unzip |> fst
+
+  let toEffectList skill =
+    skill |> toAtomList |> List.unzip |> snd |> List.collect id
+
+  let name skill =
+    match skill |> toNameList with
+    | []      -> "Do nothing"
+    | [name]  -> name
+    | names   -> String.Join(" & ", names)
+
+  let ofList =
+    function
+    | [skill] -> skill
+    | skills -> skills |> SkillList
 
 module Ability =
   let name        ((name, _): Ability) = name
