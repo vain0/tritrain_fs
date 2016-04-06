@@ -23,7 +23,7 @@ module Status =
     }
 
 module OEffect =
-  let combineMany skills: option<NamedOEffect> =
+  let combineMany skills: option<Skill> =
     match skills with
     | [] -> None
     | [skill] -> Some skill
@@ -33,8 +33,8 @@ module OEffect =
         let skill   = skills |> OEffectList
         in (name, skill) |> Some
 
-  let tryFind name: Result<NamedOEffect, _> =
-    OEffect.preset
+  let tryFind name: Result<Skill, _> =
+    Skill.preset
     |> Map.tryFind name
     |> failfIfNone "Skill '%s' doesn't exist." name
 

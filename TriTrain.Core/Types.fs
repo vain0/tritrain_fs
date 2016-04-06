@@ -99,7 +99,8 @@ module Types =
     | OEffectList   of list<OEffect>
     | OEffectAtom   of OEffectAtom
 
-  and NamedOEffect =
+  /// 行動の効果 (Action Effect)
+  and Skill =
     string * OEffect
 
   and TriggerCond =
@@ -126,7 +127,7 @@ module Types =
       Status        : Status
       Elem          : Elem
       Abils         : Map<TriggerCond, BatchedQueue<Ability>>
-      Skills        : Map<Row, NamedOEffect>
+      Skills        : Map<Row, Skill>
     }
 
   type CardId =
@@ -195,7 +196,7 @@ module Types =
     | CardEnter           of CardId * Place
     | CardAbilityTrigger  of Triggered
     | SolveTriggered      of Triggered
-    | CardBeginAction     of CardId * NamedOEffect
+    | CardBeginAction     of CardId * Skill
     | CardHpInc           of CardId * amount: int
     | CardRegenerate      of CardId * amount: int
     | CardDie             of CardId

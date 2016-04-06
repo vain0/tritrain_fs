@@ -97,7 +97,7 @@ module Program =
   let showEffectsCommand () =
     trial {
       let rows =
-        Preset.OEffect.presetList
+        Preset.Skill.presetList
         |> List.map (fun (name, oeff) ->
             sprintf "|%s|%s|" name (oeff |> Dump.dumpOEffect)
             )

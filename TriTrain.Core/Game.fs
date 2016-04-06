@@ -277,9 +277,9 @@ module Game =
     in
       match actor |> Card.tryGetActionOn vx with
       | None -> g
-      | Some ((_, oeff) as noeff) ->
+      | Some ((_, oeff) as skill) ->
           g
-          |> happen (CardBeginAction (actorId, noeff))
+          |> happen (CardBeginAction (actorId, skill))
           |> procOEffect (Some actor) (actorId |> CardId.owner, vx) oeff
 
   /// 誘発した能力を解決する

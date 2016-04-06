@@ -30,7 +30,7 @@ module KEffect =
 
   let regenerate rate = createWithDuration (Regenerate (AT, rate))
 
-module OEffect =
+module Skill =
   open Scope
   open KEffect
 
@@ -131,7 +131,7 @@ module OEffect =
 module Ability =
   open Scope
   open KEffect
-  open OEffect
+  open Skill
 
   let presetList: list<Ability> =
     [

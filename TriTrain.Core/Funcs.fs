@@ -148,12 +148,13 @@ module KEffect =
     }
 
 module OEffect =
-  let name ((name, _): NamedOEffect) = name
-
   let rec toList oeff: list<OEffectAtom> =
     match oeff with
     | OEffectList oeffs -> oeffs |> List.collect toList
     | OEffectAtom atom -> [atom]
+
+module Skill =
+  let name ((name, _): Skill) = name
 
 module Ability =
   let name        ((name, _): Ability) = name
@@ -273,7 +274,7 @@ module Card =
     in card
 
   /// カード actor が位置 vx で起こす行動を取得する。
-  let tryGetActionOn vx actor: option<NamedOEffect> =
+  let tryGetActionOn vx actor: option<Skill> =
     actor
     |> spec
     |> CardSpec.skills

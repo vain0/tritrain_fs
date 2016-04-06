@@ -37,13 +37,13 @@ module CardSpec =
         |> List.map snd // discard names
       let kount =
         (abils |> List.length)
-        + (skills |> List.collect OEffect.toPresetList |> List.length)
+        + (skills |> List.collect Skill.toPresetList |> List.length)
 
       for abil in abils do
         if abil |> Ability.isPreset |> not then
           do! warnf () "'%s' isn't a preset ability." (abil |> fst)
 
-      if skills |> List.forall (OEffect.isPresetList) |> not then
+      if skills |> List.forall (Skill.isPresetList) |> not then
         return! () |> warn "Card may have only preset effects."
       if kount > 4 then
         return! () |> warn "A card may have up to 4 effects."
