@@ -70,17 +70,32 @@ module Broadcaster =
         printfn "---- Turn %d ----"
           (g' |> Game.turn)
 
+        /// Wait input
         Console.ReadLine() |> ignore
 
-        /// Wait input
+    | WindBlow ->
+        printfn "--------"
+        printfn "The wind blows."
+
     | CardEnter (cardId, _) ->
         printCardName g' cardId
         printfn " is summoned!"
 
-    | CardActBegin (cardId, (name, _)) ->
+    | CardBeginAction (cardId, (name, _)) ->
         printfn "--------"
         printCardName g' cardId
         printfn " does '%s'!"
+          name
+
+    | CardAbilityTrigger (cardId, _, (name, _)) ->
+        printCardName g' cardId
+        printfn "'s '%s' triggered!"
+          name
+
+    | SolveTriggered (cardId, _, (name, _)) ->
+        printfn "----"
+        printCardName g' cardId
+        printfn "'s '%s' is solved."
           name
 
     | CardHpInc (cardId, amount) ->
@@ -92,19 +107,23 @@ module Broadcaster =
             (g' |> curHp)
             amount
 
+    | CardRegenerate (cardId, amount) ->
+        printCardName g' cardId
+        printfn " died and regenerated."
+
     | CardDie cardId ->
         printCardName g cardId  // 死亡する直前の状態を表示
         printfn " died."
 
     | CardGainEffect (cardId, keff) ->
         printCardName g cardId      // 獲得前の状態を表示
-        printfn " gains %A."        // TODO: 分かりやすく表示する
-          keff
+        printfn " gains %s."        // TODO: 分かりやすく表示する
+          (Dump.dumpKEffect keff)
 
     | CardLoseEffect (cardId, keff) ->
         printCardName g' cardId
-        printfn " lost %A."
-          keff
+        printfn " lost %s."
+          (Dump.dumpKEffect keff)
 
     | CardMove moves ->
         for (cardId, _, dst) in moves do
@@ -112,7 +131,18 @@ module Broadcaster =
           printfn " moves to %s."
             (stringizePlace dst)
 
-  let subscribe g: IDisposable =
+  let observe g: IDisposable =
     g
     |> Game.asObservable
     |> Observable.subscribe printEvent
+
+module ResultNotifier =
+  let readEvent onEnd (ev, g, g') =
+    match ev with
+    | GameEnd r -> onEnd r
+    | _ -> ()
+
+  let observe onEnd g: IDisposable =
+    g
+    |> Game.asObservable
+    |> Observable.subscribe (readEvent onEnd)

@@ -1,6 +1,7 @@
 ﻿namespace TriTrain.Core
 
 open System
+open Printf
 open Chessie.ErrorHandling
 
 [<AutoOpen>]
@@ -40,6 +41,20 @@ module T7 =
     | _ -> None
 
 [<RequireQualifiedAccess>]
+module Seq =
+  let product xs ys =
+    seq {
+      for x in xs do
+      for y in ys -> (x, y) }
+
+[<RequireQualifiedAccess>]
+module Option =
+  let getOr x =
+    function
+    | Some x -> x
+    | None -> x
+
+[<RequireQualifiedAccess>]
 module List =
   /// List.zip を行う。
   /// 長さが異なる場合は、短いほうに合わせて縮める。
@@ -61,6 +76,18 @@ module List =
         ) None
     |> Option.map fst
 
+  /// Apply f for each element in xs and partition them into two list.
+  /// The fst is y's where f x = Some y
+  /// and the other is x's where f x = None.
+  let paritionMap (f: 'x -> option<'y>) (xs: list<'x>): (list<'y> * list<'x>) =
+    xs
+    |> List.fold (fun (l, r) x ->
+        match f x with
+        | Some y -> (y :: l, r)
+        | None -> (l, x :: r)
+        ) ([], [])
+    |> (fun (l, r) -> (l |> List.rev, r |> List.rev))
+
 [<RequireQualifiedAccess>]
 module Map =
   let singleton k v =
@@ -72,8 +99,11 @@ module Map =
   let keySet (m: Map<'k, 'v>): Set<'k> =
     m |> Map.toList |> List.map fst |> Set.ofList
 
+  let valueList (m: Map<'k, 'v>): list<'v> =
+    m |> Map.toList |> List.map snd
+
   let valueSet (m: Map<'k, 'v>): Set<'v> =
-    m |> Map.toList |> List.map snd |> Set.ofList
+    m |> valueList |> Set.ofList
 
   let pullBack value m =
     m
@@ -89,18 +119,6 @@ module Map =
         | None      -> m
         | Some v'   -> m |> Map.add k v'
         ) Map.empty
-
-[<RequireQualifiedAccess>]
-module String =
-  let isNamey =
-    let acceptableChar ch =
-      Char.IsLetter(ch)
-      || Char.IsDigit(ch)
-      || Char.IsWhiteSpace(ch)
-      || (ch = '_')
-    let body s =
-      s |> String.forall acceptableChar
-    in body
 
 module Reflection =
   open Microsoft.FSharp.Reflection
@@ -221,68 +239,95 @@ module Observable =
 
     member this.AsObservable = obs
 
-module Trial =
-  let eprintMessages r =
-    let eprintAll = List.iter (eprintfn "%s")
-    match r with
-    | Pass _ -> ()
-    | Warn (_, msgs) ->
-        eprintfn "Warning:"
-        eprintAll msgs
-    | Fail msgs ->
-        eprintfn "Fatal error:"
-        eprintAll msgs
+type BatchedQueue<'T> =
+  | BatchedQueue of forwardList: list<'T> * reversedList: list<'T>
 
-module ObjectElementSeq =
-  open System
-  open System.Linq
-  open Microsoft.FSharp.Reflection
+[<RequireQualifiedAccess>]
+module BatchedQueue =
+  let internal unwrap (BatchedQueue(l, r)) =
+    (l, r)
 
-  let cast (t: Type) (xs: obj seq) =
-    let enumerable = typeof<Enumerable>
-    let cast =
-      let nonGeneric = enumerable.GetMethod("Cast")
-      nonGeneric.MakeGenericMethod([| t |])
-    cast.Invoke(null, [| xs |])
+  // 前方リストが空なら、後方リストを反転して前方リストにする
+  let internal rebuild self =
+    self
+    |> unwrap
+    |> function
+      | ([], r) -> BatchedQueue (r |> List.rev, [])
+      | _ -> self
 
-  let toSet (t: Type) (xs: obj seq) =
-    let setType         = typedefof<Set<_>>.MakeGenericType(t)
-    let parameter       = xs |> cast t
-    let parameterType   = typedefof<seq<_>>.MakeGenericType([| t |])
-    let constructor'    = setType.GetConstructor([| parameterType |])
-    in constructor'.Invoke([| parameter |])
+  let empty =
+    BatchedQueue ([], [])
+
+  let add x self =
+    self
+    |> unwrap
+    |> function (l, r) -> BatchedQueue (l, x :: r)
+    |> rebuild
+
+  let tryUncons self =
+    self
+    |> unwrap
+    |> function
+      | ([], _) -> None
+      | (x :: l, r) -> Some (x, BatchedQueue (l, r) |> rebuild)
+
+  let tryHead self =
+    self |> tryUncons |> Option.map fst
+
+  let tryTail self =
+    self |> tryUncons |> Option.map snd
+
+  let toList self =
+    self
+    |> unwrap
+    |> function (f, r) -> List.append f (List.rev r)
+
+  let ofList self =
+    BatchedQueue (self, [])
+
+  let toSeq self = self |> toList |> List.toSeq
+  let ofSeq self = self |> Seq.toList |> ofList
+
+  let singleton x =
+    ofList [x]
+
+  // Note: キューが空でないときは常に、前方リストが空でない。
+  let isEmpty (l, _) =
+    List.isEmpty l
+
+  let length self =
+    self
+    |> unwrap
+    |> function (l, r) -> List.length l + List.length r
+
+  let map f self =
+    self
+    |> unwrap
+    |> function (l, r) -> BatchedQueue (List.map f l, List.map f r)
+
+  let fold f s self =
+    self |> toList |> List.fold f s
+
+  let append l r =
+    r |> fold (fun self x -> self |> add x) l
+
+[<AutoOpen>]
+module TrialOperators =
+  let warnf value fmt =
+    kprintf (flip warn value) fmt
+
+  let failf fmt =
+    kprintf fail fmt
+
+  let failfIfNone fmt =
+    kprintf failIfNone fmt
 
 module Yaml =
   open FsYaml
-  open FsYaml.NativeTypes
-  open FsYaml.RepresentationTypes
-  open FsYaml.CustomTypeDefinition
 
-  let setDef =
-    {
-      Accept = isGenericTypeDef (typedefof<Set<_>>)
-      Construct = fun construct' t ->
-        function
-        | Sequence (s, _) ->
-            let elemType = t.GetGenericArguments().[0]
-            let elems = s |> List.map (construct' elemType)
-            in ObjectElementSeq.toSet elemType elems
-        | otherwise -> raise (mustBeSequence t otherwise)
-      Represent =
-        representSeqAsSequence
-    }
-
-  let customDefs =
-    [
-      setDef
-    ]
-
-  let customDump<'t> x =
-    Yaml.dumpWith<'t> customDefs x
-
-  let customTryLoad<'t> yaml =
+  let myTryLoad<'t> yaml =
     try
-      Yaml.loadWith<'t> customDefs yaml
+      Yaml.load<'t> yaml
       |> pass
     with
     | e -> e |> fail

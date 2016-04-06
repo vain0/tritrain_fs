@@ -22,19 +22,15 @@ module Scope =
     ("自身と右翼", UnionScope [self |> snd; homeRgt |> snd])
 
 module KEffect =
-  let atInc amount duration =
-    {
-      Type        = ATInc amount
-      Duration    = Some duration
-    }
+  let createWithDuration typ duration =
+    KEffect.create typ (Some duration)
 
-  let agInc amount duration =
-    {
-      Type        = AGInc amount
-      Duration    = Some duration
-    }
+  let atInc amount = createWithDuration (ATInc amount)
+  let agInc amount = createWithDuration (AGInc amount)
 
-module OEffect =
+  let regenerate rate = createWithDuration (Regenerate (AT, rate))
+
+module Skill =
   open Scope
   open KEffect
 
@@ -42,21 +38,21 @@ module OEffect =
     [ oeff1; oeff2 ] |> OEffectList
 
   let attack rate scope =
-    OEffectToUnits (Damage (AT, rate), scope)
+    OEffectToUnits (Damage (AT, rate), scope) |> OEffectAtom
 
   let heal rate scope =
-    OEffectToUnits (Heal (AT, rate), scope)
+    OEffectToUnits (Heal (AT, rate), scope) |> OEffectAtom
 
   let death rate scope =
-    OEffectToUnits (Death (AT, rate), scope)
+    OEffectToUnits (Death (AT, rate), scope) |> OEffectAtom
 
   let sacrifice scope =
-    OEffectToUnits (Death (One, 100.0), scope)
+    OEffectToUnits (Death (One, 100.0), scope) |> OEffectAtom
 
   let give keff scope =
-    OEffectToUnits (Give keff, scope)
+    OEffectToUnits (Give keff, scope) |> OEffectAtom
 
-  let preset =
+  let presetList =
     [
       ("通常攻撃"     , attack 0.70 oppoFwd)
       ("後列薙ぎ"     , attack 0.30 oppoBwd)
@@ -80,8 +76,10 @@ module OEffect =
       ("旋風"         , give (agInc (AT, 0.15) 2) homeBwd)
       ("天翔"         , give (agInc (AT, 0.10) 2) homeAll)
 
-      ("仁王立ち"     , Swap selfAndFwd)
-      ("退避"         , Swap selfAndRgt)
+      ("仁王立ち"     , Swap selfAndFwd |> OEffectAtom)
+      ("退避"         , Swap selfAndRgt |> OEffectAtom)
+
+      ("転生印"       , give (regenerate 0.50 1) homeFwd)
 
       ( "太陽破"
       , pair (sacrifice homeFwd) (attack 0.50 oppoAll) )
@@ -94,27 +92,30 @@ module OEffect =
           (give (atInc (AT, 0.05) 2) homeAll)
           (give (agInc (AT, 0.05) 2) homeAll) )
     ]
+
+  let preset =
+    presetList
     |> List.map (fun (name, oeff) -> (name, (name, oeff)))
     |> Map.ofList
 
+  let presetSet: Set<OEffect> =
+    preset
+    |> Map.valueSet
+    |> Set.map snd  // discard names
+
   /// プリセットに含まれる効果か？
   /// (名前は異なっていてもよい。)
-  let isPreset: OEffect -> bool =
-    let oeffSet =
-      preset
-      |> Map.toList
-      |> List.map (fun (_, (_, oeff)) -> oeff)
-      |> Set.ofList
-    let body oeff =
-      let b1 =
-        oeffSet |> Set.contains oeff
-      let b2 =
-        match oeff with
-        | OEffectList oeffs ->
-            (oeffs |> List.forall (fun oeff -> oeffSet |> Set.contains oeff))
-        | _ -> false
-      in b1 || b2
-    in body
+  let isPreset oeff =
+    presetSet |> Set.contains oeff
+
+  /// プリセットに含まれる効果の組み合わせか？
+  let rec isPresetList oeff =
+    let b1 = oeff |> isPreset
+    let b2 =
+      match oeff with
+      | OEffectList oeffs -> oeffs |> List.forall isPresetList
+      | OEffectAtom oeffa -> false
+    in b1 || b2
 
   /// 効果 oeff を構成する部分効果のうち、プリセットであるもののリスト
   /// プリセットでないものが含まれているなら、それらは無視される。
@@ -126,3 +127,25 @@ module OEffect =
       match oeff with
       | OEffectList oeffs -> oeffs |> List.collect toPresetList
       | _ -> []
+
+module Ability =
+  open Scope
+  open KEffect
+  open Skill
+
+  let presetList: list<Ability> =
+    [
+      ("躍神"         , (WhenBoT, give (atInc (AT, 0.10) 3) self))
+      ("神速"         , (WhenEtB, give (agInc (One, 30.0) 1) self))
+    ]
+
+  let preset =
+    presetList
+    |> List.map (fun ((name, _) as abil) -> (name, abil))
+    |> Map.ofList
+
+  let internal presetSet: Set<(TriggerCond * OEffect)> =
+    presetList |> List.map snd |> set
+
+  let isPreset (abil: Ability) =
+    presetSet |> Set.contains (abil |> snd)

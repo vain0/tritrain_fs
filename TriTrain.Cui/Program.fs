@@ -1,43 +1,56 @@
 namespace TriTrain.Cui
 
 open TriTrain.Core
-open TriTrain.Core.Serialize
+open TriTrain.Cui.TestBattle
+open TriTrain.Cui.PrintPreset
+open System
 open Chessie.ErrorHandling
 
 module Program =
-  let loadDefaultPlayers =
-      trial {
-        let! deck1 = DeckSpecSrc.load "l.tritrain_deck"
-        let! deck2 = DeckSpecSrc.load "r.tritrain_deck"
-        let pl1 =
-          {
-            Name      = "左人"
-            Deck      = deck1
-          }
-        let pl2 =
-          {
-            Name      = "右人"
-            Deck      = deck2
-          }
-        return (pl1, pl2)
-      }
+  let usage () =
+    """
+help                    Print this
+show deck1 deck2        Show a battle deck1 vs deck2
+test deck1 deck2        Simutate battles between deck1 and deck2
+rr   decks...           Simulate round-robin tournament with decks
+effs                    Show preset effects
+"""
 
-  let runGameWithBroadcaster (pl1, pl2) =
-    let g = Game.create pl1 pl2
-    use o = Broadcaster.subscribe g
-    let _ = g |> Game.run
-    in ()
+  let (|RoundRobin|_|) =
+    function
+    | "rr" | "round-robin" -> Some ()
+    | _ -> None
 
-  let testPlay () =
-    trial {
-      let! (pl1, pl2) = loadDefaultPlayers
-      do runGameWithBroadcaster (pl1, pl2)
-    }
-    |> Trial.eprintMessages
+  let rec procCommandArgs =
+    function
+    | [] ->
+        trial {
+          let! args = Console.ReadLine() |> Console.parseCommandLine
+          return! args |> procCommandArgs
+        }
+
+    | ["show"] ->
+        procCommandArgs ("show" :: defaultDeckPaths)
+    | "show" :: deckPath1 :: deckPath2 :: _ ->
+        showGame (deckPath1, deckPath2)
+
+    | ["test"] ->
+        procCommandArgs ("test" :: defaultDeckPaths)
+    | "test" :: deckPath1 :: deckPath2 :: _ ->
+        testBattleCommand (deckPath1, deckPath2)
+
+    | [RoundRobin] ->
+        procCommandArgs ("round-robin" :: defaultDeckPaths)
+     | RoundRobin :: deckPaths ->
+        roundRobinCommand deckPaths
+
+    | ["effs"] ->
+        showEffectsCommand ()
+
+    | _ ->
+        printfn "%s" (usage ()) |> pass
 
   [<EntryPoint>]
   let main argv =
-    testPlay ()
-
-    // exit code
-    0
+    procCommandArgs (argv |> Array.toList)
+    |> Trial.runConsoleApp

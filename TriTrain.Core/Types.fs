@@ -56,7 +56,9 @@ module Types =
   /// 変量
   type VarType =
     | One
+    | MaxHP  // unused
     | AT
+    | AG
 
   type Amount =
     VarType * Rate
@@ -68,6 +70,7 @@ module Types =
   type KEffectType =
     | ATInc         of Amount
     | AGInc         of Amount
+    | Regenerate    of Amount
 
   /// 継続的効果 (Continuous Effect)
   type KEffect =
@@ -85,14 +88,19 @@ module Types =
     //| Unsummon
 
   /// 単発的効果 (Oneshot Effect)
-  type OEffect =
-    | OEffectList   of list<OEffect>
+  type OEffectAtom =
     | OEffectToUnits
       of OEffectToUnitType * NamedScope
     | Swap          of NamedScope
+    | Rotate        of ScopeSide
     | GenToken      of list<CardSpec>
 
-  and NamedOEffect =
+  and OEffect =
+    | OEffectList   of list<OEffect>
+    | OEffectAtom   of OEffectAtom
+
+  /// 行動の効果 (Action Effect)
+  and Skill =
     string * OEffect
 
   and TriggerCond =
@@ -104,10 +112,7 @@ module Types =
     //| WhenDealt
 
   and Ability =
-    {
-      Cond          : TriggerCond
-      Effect        : NamedOEffect
-    }
+    string * (TriggerCond * OEffect)
 
   and Status =
     {
@@ -121,8 +126,8 @@ module Types =
       Name          : CardName
       Status        : Status
       Elem          : Elem
-      Abils         : list<Ability>
-      Skills        : Map<Row, NamedOEffect>
+      Abils         : Map<TriggerCond, BatchedQueue<Ability>>
+      Skills        : Map<Row, Skill>
     }
 
   type CardId =
@@ -169,6 +174,9 @@ module Types =
       Trash         : Trash
     }
 
+  type Triggered =
+    CardId * Place * Ability
+
   type Phase =
     | SummonPhase
     | UpkeepPhase
@@ -184,9 +192,13 @@ module Types =
     | GameBegin
     | GameEnd             of GameResult
     | TurnBegin
+    | WindBlow
     | CardEnter           of CardId * Place
-    | CardActBegin        of CardId * NamedOEffect
+    | CardAbilityTrigger  of Triggered
+    | SolveTriggered      of Triggered
+    | CardBeginAction     of CardId * Skill
     | CardHpInc           of CardId * amount: int
+    | CardRegenerate      of CardId * amount: int
     | CardDie             of CardId
     | CardGainEffect      of CardId * KEffect
     | CardLoseEffect      of CardId * KEffect
@@ -200,16 +212,13 @@ module Types =
       Turn          : int
 
       /// 誘発し、まだ処理されていない誘発型能力
-      Triggered     : list<OEffect>
+      Triggered     : list<Triggered>
 
       Events        : Observable.Source<GameEvent * Game>
     }
 
   type AbilitySrc =
-    {
-      Cond          : string
-      Effect        : string
-    }
+    list<string>
 
   /// ユーザが記述するカード仕様
   type CardSpecSrc =
@@ -218,7 +227,7 @@ module Types =
       AT            : int
       AG            : int
       Elem          : string
-      Abils         : list<AbilitySrc>
+      Abils         : AbilitySrc
       SkillFwd      : list<string>
       SkillBwd      : list<string>
     }

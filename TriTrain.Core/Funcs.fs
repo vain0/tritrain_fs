@@ -36,10 +36,10 @@ module Elem =
 
   let isStrongTo src tar =
     match (src, tar) with
-    | (Air  , Fire )
-    | (Fire , Water)
-    | (Water, Earth)
-    | (Earth, Air  ) -> true
+    | (Air  , Earth)
+    | (Earth, Water)
+    | (Water, Fire )
+    | (Fire , Air  ) -> true
     | _ -> false
 
   /// 属性 src が属性 tar を攻撃するときにかかる係数
@@ -66,15 +66,15 @@ module ScopeSide =
   let all =
     DU<ScopeSide>.UnitCases
 
-module Scope =
-  let name ((name, _): NamedScope) = name
-
   /// plId からみた side 側のリスト
   let sides plId side =
     match side with
     | Home -> [plId]
     | Oppo -> [plId |> PlayerId.inverse]
     | Both -> PlayerId.all
+
+module Scope =
+  let name ((name, _): NamedScope) = name
 
   let rec placeSet ((plId, vx) as source) scope: Set<Place> =
     match scope with
@@ -89,21 +89,21 @@ module Scope =
         match vx |> Row.ofVertex with
         | FwdRow -> Set.empty
         | BwdRow ->
-            [ for pi in sides plId side -> (pi, Fwd) ]
+            [ for pi in ScopeSide.sides plId side -> (pi, Fwd) ]
             |> Set.ofList
 
     | BwdSide side ->
         match vx |> Row.ofVertex with
         | FwdRow ->
             [
-              for pi in sides plId side do
+              for pi in ScopeSide.sides plId side do
                 for p in [Lft; Rgt] -> (pi, p)
             ]
             |> Set.ofList
         | BwdRow -> Set.empty
 
     | LftSide side ->
-        let sides = sides plId side
+        let sides = ScopeSide.sides plId side
         let fwd =
           match vx with
           | Lft -> []
@@ -115,7 +115,7 @@ module Scope =
         in (List.append fwd lft) |> Set.ofList
 
     | RgtSide side ->
-        let sides = sides plId side
+        let sides = ScopeSide.sides plId side
         let fwd =
           match vx with
           | Lft | Fwd -> [ for side in sides -> (side, Fwd) ]
@@ -141,13 +141,33 @@ module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration
 
-module OEffect =
-  let name ((name, _): NamedOEffect) = name
+  let create typ duration =
+    {
+      Type        = typ
+      Duration    = duration
+    }
 
-  let rec toList oeff =
+module OEffect =
+  let rec toList oeff: list<OEffectAtom> =
     match oeff with
     | OEffectList oeffs -> oeffs |> List.collect toList
-    | _ -> [oeff]
+    | OEffectAtom atom -> [atom]
+
+module Skill =
+  let name ((name, _): Skill) = name
+
+module Ability =
+  let name        ((name, _): Ability) = name
+  let condition   ((_, (cond, _)): Ability) = cond
+  let effect      ((_, (_, oeff)): Ability) = oeff
+
+  let add abil abils =
+    let cond = abil |> condition
+    let q =
+      match abils |> Map.tryFind cond with
+      | None    -> BatchedQueue.singleton abil
+      | Some q  -> q |> BatchedQueue.add abil
+    in abils |> Map.add cond q
 
 module Status =
   let hp (st: Status) = st.HP
@@ -190,6 +210,18 @@ module Card =
   let elem =
     spec >> CardSpec.elem
 
+  let abils =
+    spec >> CardSpec.abils
+
+  let maxHp =
+    spec >> CardSpec.status >> Status.hp
+
+  let isAlive card =
+    curHp card > 0
+
+  let isDead =
+    isAlive >> not
+
   let curAt card =
     card
     |> effects
@@ -221,18 +253,80 @@ module Card =
       AG = card |> curAg
     }
 
+  let setHp hp card =
+    let hp = hp |> max 0 |> min (card |> maxHp) 
+    in { card with CurHP = hp }
+
+  /// 再生効果を適用する
+  let regenerate card =
+    let (regenValues, effects') =
+      card
+      |> effects
+      |> List.paritionMap
+          (function
+          | { Type = (Regenerate (One, value)) } -> Some value
+          | _ -> None
+          )
+    let rate = regenValues |> List.sum |> flip (/) 100.0
+    let card =
+      { card with Effects = effects' }
+      |> setHp (card |> maxHp |> float |> (*) rate |> int)
+    in card
+
+  /// カード actor が位置 vx で起こす行動を取得する。
+  let tryGetActionOn vx actor: option<Skill> =
+    actor
+    |> spec
+    |> CardSpec.skills
+    |> Map.tryFind (vx |> Row.ofVertex)
+
 module Amount =
   /// 変量を決定する
   let rec resolve (actor: option<Card>) (amount: Amount) =
     let rate = amount |> snd
     let value =
       match amount |> fst with
-      | One -> rate
+      | One -> 1.0
+      | MaxHP ->
+          match actor with
+          | Some actor -> actor |> Card.maxHp |> float
+          | None -> 0.0
       | AT ->
           match actor with
-          | Some actor -> actor |> Card.curAt |> float |> (*) rate
+          | Some actor -> actor |> Card.curAt |> float
           | None -> 0.0
-    in value
+      | AG ->
+          match actor with
+          | Some actor -> actor |> Card.curAg |> float
+          | None -> 0.0
+    in value * rate
+
+  /// 継続的効果の変量を固定する。
+  /// 事後: 含まれる Amount はすべて (One, _) である。
+  let resolveKEffect actorOpt target keff =
+    match keff |> KEffect.typ with
+    | ATInc amount ->
+        { keff with Type = ATInc (One, amount |> resolve actorOpt) }
+    | AGInc amount ->
+        { keff with Type = AGInc (One, amount |> resolve actorOpt) }
+    | Regenerate amount ->
+        { keff with Type = Regenerate (One, amount |> resolve actorOpt) }
+
+  /// 単発的効果の変量を固定する。
+  /// 事後: 含まれる Amount はすべて (One, _) である。
+  let resolveOEffectToUnit actorOpt target oeffType =
+    match oeffType with
+    | Damage amount ->
+        let amount = amount |> resolve actorOpt
+        in Damage (One, amount)
+    | Heal amount ->
+        let amount = amount |> resolve actorOpt
+        in Heal (One, amount)
+    | Death  amount ->
+        let amount = amount |> resolve actorOpt
+        in Death (One, amount)
+    | Give keff ->
+        keff |> resolveKEffect actorOpt target |> Give
 
 module DeckSpec =
   let name        (spec: DeckSpec) = spec.Name
@@ -271,6 +365,12 @@ module PlayerSpec =
   let name        (spec: PlayerSpec) = spec.Name
   let deck        (spec: PlayerSpec) = spec.Deck
 
+  let create name deck =
+    {
+      Name          = name
+      Deck          = deck
+    }
+
 module Player =
   let playerId    (pl: Player) = pl.PlayerId
   let spec        (pl: Player) = pl.Spec
@@ -293,3 +393,7 @@ module Player =
 
   let name =
     spec >> PlayerSpec.name
+
+module GameResult =
+  let all =
+    [Win PlLft; Win PlRgt; Draw]

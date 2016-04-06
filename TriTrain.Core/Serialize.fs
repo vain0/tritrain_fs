@@ -2,6 +2,7 @@
 
 open TriTrain.Core
 open TriTrain.Core.Validate
+open TriTrain.Core.Preset
 open System
 open System.IO
 open Reflection
@@ -11,7 +12,7 @@ open FsYaml
 module Elem =
   let tryParse name =
     DU<Elem>.TryParse(name)
-    |> failIfNone (sprintf "Unknown element '%s'." name)
+    |> failfIfNone "Unknown element '%s'." name
 
 module Status =
   let ofAtAg at ag =
@@ -22,9 +23,7 @@ module Status =
     }
 
 module OEffect =
-  open TriTrain.Core.Preset
-
-  let combineMany skills: option<NamedOEffect> =
+  let combineMany skills: option<Skill> =
     match skills with
     | [] -> None
     | [skill] -> Some skill
@@ -34,10 +33,10 @@ module OEffect =
         let skill   = skills |> OEffectList
         in (name, skill) |> Some
 
-  let tryFind name: Result<NamedOEffect, _> =
-    OEffect.preset
+  let tryFind name: Result<Skill, _> =
+    Skill.preset
     |> Map.tryFind name
-    |> failIfNone (sprintf "Skill '%s' doesn't exist." name)
+    |> failfIfNone "Skill '%s' doesn't exist." name
 
   let tryFindList names =
     trial {
@@ -49,13 +48,29 @@ module OEffect =
         skills |> combineMany
     }
 
+module Ability =
+  let ofSrc (src: AbilitySrc) =
+    trial {
+      let! abils =
+        src
+        |> List.map (fun name ->
+            Ability.preset |> Map.tryFind name
+            |> failfIfNone "Ability '%s' doesn't exist." name
+            )
+        |> Trial.collect
+      return
+        abils |> List.fold (fun m abil ->
+            m |> Ability.add abil
+            ) Map.empty
+    }
+
 module CardSpec =
   let ofSrc (src: CardSpecSrc) =
     trial {
       let! elem       = Elem.tryParse (src.Elem)
       let! skillFwd   = src.SkillFwd |> OEffect.tryFindList
       let! skillBwd   = src.SkillBwd |> OEffect.tryFindList
-      let abils       = [] // TODO: parse src.Abils
+      let! abils      = src.Abils |> Ability.ofSrc
       let skills =
         [
           (FwdRow, skillFwd)
@@ -96,7 +111,7 @@ module DeckSpecSrc =
   let deserialize yaml =
     trial {
       let! src =
-        Yaml.customTryLoad<DeckSpecSrc> yaml
+        Yaml.myTryLoad<DeckSpecSrc> yaml
         |> Trial.mapFailure
             (fun es -> es |> List.map (fun e -> e.Message))
       let! spec = src |> DeckSpec.ofSrc
@@ -105,7 +120,7 @@ module DeckSpecSrc =
     }
 
   let serialize (self: DeckSpecSrc) =
-    Yaml.customDump self
+    Yaml.dump self
 
   let load path =
     try
