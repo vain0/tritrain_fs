@@ -46,3 +46,21 @@ module Random =
       Name      = name ()
       Cards     = T7.init (fun _ -> cardSpec ())
     }
+
+  /// ATの値を 3:1 の比率で合成する
+  let altStatus status statusAlt =
+    let at =
+      ((status |> Status.at) * 3 + (statusAlt |> Status.at)) / 4
+    in Status.ofAtAg at (status |> Status.ag)
+
+  /// 前列・後列のどちらかの行動を差し替える
+  let altSkills skills skillsAlt =
+      match skillsAlt |> Map.toList |> Random.element with
+      | None -> skills
+      | Some (row, skill) ->
+          skills |> Map.add row skill
+
+  let altCardSpec (cspec: CardSpec) (cspecAlt: CardSpec) =
+    let cspec = { cspec with Skills = altSkills cspec.Skills cspecAlt.Skills }
+    let cspec = { cspec with Status = altStatus cspec.Status cspecAlt.Status }
+    in cspec
