@@ -26,6 +26,12 @@ module Dump =
   let dumpScope (name, _) =
     name
 
+  let dumpCond =
+    function
+    | WhenBoT -> "各ターン開始時"
+    | WhenEtB -> "盤面に出たとき"
+    | WhenDie -> "死亡したとき"
+
   let dumpKEffect keff =
     let duration =
       match keff |> KEffect.duration with
