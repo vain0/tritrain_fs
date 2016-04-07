@@ -19,17 +19,6 @@ module Misc =
 
   type Rate = float
 
-[<RequireQualifiedAccess>]
-module T3 =
-  let toList (x0, x1, x2) =
-    [x0; x1; x2]
-
-  let ofList =
-    function
-    | [x0; x1; x2] ->
-        (x0, x1, x2) |> Some
-    | _ -> None
-
 [<AutoOpen>]
 module T7 =
   let toList (x0, x1, x2, x3, x4, x5, x6) =
