@@ -36,7 +36,7 @@ module CardSpec =
         |> Map.valueList
       let kount =
         (abils |> List.length)
-        + (skills |> List.collect Skill.toPresetList |> List.length)
+        + (skills |> List.collect Skill.toAtomList |> List.length)
 
       for abil in abils do
         if abil |> Ability.isPreset |> not then

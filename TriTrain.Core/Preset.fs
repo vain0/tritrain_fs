@@ -117,17 +117,6 @@ module Skill =
       | SkillList skills -> skills |> List.forall isPreset
     in b1 || b2
 
-  /// 行動を構成する部分行動のうち、プリセットであるもののリスト
-  /// プリセットでないものが含まれているなら、それらは無視される。
-  let rec toPresetList skill: list<Skill> =
-    if skill |> isPreset
-    then
-      [skill]
-    else
-      match skill with
-      | SkillAtom _ -> []
-      | SkillList skills -> skills |> List.collect toPresetList
-
 module Ability =
   open Scope
   open KEffect
