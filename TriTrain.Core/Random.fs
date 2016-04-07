@@ -64,7 +64,7 @@ module Random =
       | Some (row, skill) ->
           skills |> Map.add row skill
 
-  let altCardSpec (cspec: CardSpec) (cspecAlt: CardSpec) =
+  let altCardSpec (cspec: CardSpec) (cspecAlt: CardSpec): CardSpec =
     let cspec = { cspec with Skills = altSkills cspec.Skills cspecAlt.Skills }
     let cspec = { cspec with Status = altStatus cspec.Status cspecAlt.Status }
     in cspec
