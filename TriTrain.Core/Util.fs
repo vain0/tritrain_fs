@@ -310,7 +310,7 @@ module BatchedQueue =
     ofList [x]
 
   // Note: キューが空でないときは常に、前方リストが空でない。
-  let isEmpty (l, _) =
+  let isEmpty (BatchedQueue (l, _)) =
     List.isEmpty l
 
   let length self =
