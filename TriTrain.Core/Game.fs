@@ -1,7 +1,5 @@
 ﻿namespace TriTrain.Core
 
-open System
-
 module Game =
   let plLft       (g: Game) = g.PlLft
   let plRgt       (g: Game) = g.PlRgt
@@ -27,7 +25,7 @@ module Game =
         Events      = Observable.Source<GameEvent * Game>()
       }
 
-  let asObservable (g: Game): IObservable<GameEvent * Game * Game> =
+  let asObservable (g: Game): GameEventStream =
     (g |> events).AsObservable
     |> Observable.duplicateFirst
     |> Observable.pairwise

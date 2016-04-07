@@ -1,5 +1,7 @@
 ﻿namespace TriTrain.Core
 
+open System
+
 [<AutoOpen>]
 module Types =
   type Id =
@@ -217,6 +219,9 @@ module Types =
 
       Events        : Observable.Source<GameEvent * Game>
     }
+
+  type GameEventStream =
+    IObservable<GameEvent * Game * Game>
 
   type AbilitySrc =
     list<string>
