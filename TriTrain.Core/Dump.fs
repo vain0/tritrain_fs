@@ -69,7 +69,7 @@ module Dump =
           (dumpScope scope)
           (dumpKEffect keff)
 
-  let rec dumpOEffectAtom oeff =
+  let rec dumpOEffect oeff =
     match oeff with
     | OEffectToUnits (typ, scope) ->
         dumpOEffectToUnit (typ, scope)
@@ -80,9 +80,9 @@ module Dump =
     | GenToken cards ->
         failwith "unimplemented"
 
-  and dumpOEffect (oeffs: OEffect) =
-    oeffs |> OEffect.toList
-    |> List.map dumpOEffectAtom
+  and dumpOEffectList (oeffs: list<OEffect>) =
+    oeffs
+    |> List.map dumpOEffect
     |> String.concat ""
 
   and dumpStatus st =
@@ -93,11 +93,11 @@ module Dump =
 
   and dumpSkillOf row skills =
     match skills |> Map.tryFind row with
-    | Some (name, oeff) ->
+    | Some skill ->
         sprintf "{%s「%s」: %s}"
           (row |> dumpRow)
-          name
-          (oeff |> dumpOEffect)
+          (skill |> Skill.name)
+          (skill |> Skill.toEffectList |> dumpOEffectList)
     | None -> ""
 
   and dumpCardSpec spec =

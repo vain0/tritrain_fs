@@ -13,6 +13,7 @@ help                    Print this
 show deck1 deck2        Show a battle deck1 vs deck2
 test deck1 deck2        Simutate battles between deck1 and deck2
 rr   decks...           Simulate round-robin tournament with decks
+rand                    Generate random deck
 effs                    Show preset effects
 """
 
@@ -43,6 +44,8 @@ effs                    Show preset effects
         procCommandArgs ("round-robin" :: defaultDeckPaths)
      | RoundRobin :: deckPaths ->
         roundRobinCommand deckPaths
+
+    | Random.RandomCommand r -> r
 
     | ["effs"] ->
         showEffectsCommand ()

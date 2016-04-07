@@ -8,8 +8,8 @@ module PrintPreset =
   let printSkillsTable () =
     let rows =
       Preset.Skill.presetList
-      |> List.map (fun (name, oeff) ->
-          sprintf "|%s|%s|" name (oeff |> Dump.dumpOEffect)
+      |> List.map (fun (name, oeffs) ->
+          sprintf "|%s|%s|" name (oeffs |> Dump.dumpOEffectList)
           )
       |> String.concat (Environment.NewLine)
     let header =
@@ -23,11 +23,11 @@ module PrintPreset =
   let printAbilsTable () =
     let rows =
       Preset.Ability.presetList
-      |> List.map (fun (name, (cond, oeff)) ->
+      |> List.map (fun (name, (cond, oeffs)) ->
           sprintf "|%s|%s|%s|"
             name
             (cond |> Dump.dumpCond)
-            (oeff |> Dump.dumpOEffect)
+            (oeffs |> Dump.dumpOEffectList)
           )
       |> String.concat (Environment.NewLine)
     let header =

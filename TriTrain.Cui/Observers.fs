@@ -81,11 +81,11 @@ module Broadcaster =
         printCardName g' cardId
         printfn " is summoned!"
 
-    | CardBeginAction (cardId, (name, _)) ->
+    | CardBeginAction (cardId, skill) ->
         printfn "--------"
         printCardName g' cardId
         printfn " does '%s'!"
-          name
+          (skill |> Skill.name)
 
     | CardAbilityTrigger (cardId, _, (name, _)) ->
         printCardName g' cardId

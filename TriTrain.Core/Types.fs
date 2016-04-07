@@ -5,6 +5,7 @@ module Types =
   type Id =
     | Id of int
 
+  type Name = string
   type CardName = string
 
   type Vertex =
@@ -88,20 +89,20 @@ module Types =
     //| Unsummon
 
   /// 単発的効果 (Oneshot Effect)
-  type OEffectAtom =
+  type OEffect =
     | OEffectToUnits
       of OEffectToUnitType * NamedScope
     | Swap          of NamedScope
     | Rotate        of ScopeSide
     | GenToken      of list<CardSpec>
 
-  and OEffect =
-    | OEffectList   of list<OEffect>
-    | OEffectAtom   of OEffectAtom
+  and SkillAtom =
+    Name * list<OEffect>
 
   /// 行動の効果 (Action Effect)
   and Skill =
-    string * OEffect
+    | SkillAtom     of SkillAtom
+    | SkillList     of list<Skill>
 
   and TriggerCond =
     /// At the beginning of each turn
@@ -112,7 +113,7 @@ module Types =
     //| WhenDealt
 
   and Ability =
-    string * (TriggerCond * OEffect)
+    string * (TriggerCond * list<OEffect>)
 
   and Status =
     {
