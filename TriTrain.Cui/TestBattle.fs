@@ -33,14 +33,14 @@ module TestBattle =
 
   /// 先攻・後攻を固定して2つのデッキを times 回戦わせ、その結果の集計を得る。
   let testBattle times plPair =
-    let mutable win  = 0
-    let mutable lose = 0
-    let mutable draw = 0
+    let win  = ref 0
+    let lose = ref 0
+    let draw = ref 0
     let inc =
       function
-      | Win PlLft   -> Interlocked.Increment(& win)
-      | Win PlRgt   -> Interlocked.Increment(& lose)
-      | Draw        -> Interlocked.Increment(& draw)
+      | Win PlLft   -> Interlocked.Increment(win)
+      | Win PlRgt   -> Interlocked.Increment(lose)
+      | Draw        -> Interlocked.Increment(draw)
       >> ignore
     let gs =
       [ for _ in 1..times ->
@@ -50,7 +50,7 @@ module TestBattle =
       ]
       |> Async.Parallel
       |> Async.RunSynchronously
-    in (win, lose, draw)
+    in (! win, ! lose, ! draw)
 
   let stringizeResult (win, lose, draw) =
     sprintf "Win %d - Lose %d - Draw %d" win lose draw
