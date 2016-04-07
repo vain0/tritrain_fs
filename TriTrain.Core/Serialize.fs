@@ -14,8 +14,8 @@ module Elem =
     DU<Elem>.TryParse(name)
     |> failfIfNone "Unknown element '%s'." name
 
-  let toString (elem: Elem) =
-    elem |> string
+  let toString (elem: Elem): string =
+    DU<Elem>.StringizeUnitCase(elem)
 
 module Skill =
   let tryFind name: Result<Skill, _> =

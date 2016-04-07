@@ -130,7 +130,7 @@ module Map =
 module Reflection =
   open Microsoft.FSharp.Reflection
 
-  type DU<'t>() =
+  type DU<'t when 't: comparison>() =
     static member val CaseInfos =
       FSharpType.GetUnionCases(typeof<'t>)
       |> Array.toList
@@ -139,18 +139,22 @@ module Reflection =
       DU<'t>.CaseInfos
       |> List.map (fun (case: UnionCaseInfo) -> case.Name)
 
-    static member val UnitCases =
-      DU<'t>.CaseInfos
-      |> List.choose (fun ci ->
-          if ci.GetFields().Length = 0
-          then Some (FSharpValue.MakeUnion(ci, Array.empty) :?> 't)
-          else None
-          )
-
     static member TryParse(str) =
       DU<'t>.CaseInfos
       |> List.tryFind (fun case -> case.Name = str)
       |> Option.map (fun case -> FSharpValue.MakeUnion (case, [||]) :?> 't)
+
+    static member val internal StringizeUnitCaseMap: Map<'t, string> =
+      [ for ci in DU<'t>.CaseInfos do
+          if ci.GetFields().Length = 0 then
+            yield (FSharpValue.MakeUnion(ci, Array.empty) :?> 't, ci.Name)
+      ] |> Map.ofList
+
+    static member StringizeUnitCase(case) =
+      DU<'t>.StringizeUnitCaseMap |> Map.find case
+
+    static member val UnitCases =
+      DU<'t>.StringizeUnitCaseMap |> Map.toList |> List.map fst
 
 [<RequireQualifiedAccess>]
 module Random =
