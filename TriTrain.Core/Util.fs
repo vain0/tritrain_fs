@@ -14,7 +14,6 @@ module Misc =
   let isInInterval l r x: bool =
     l <= x && x < r
 
-  type T3<'t> = 't * 't * 't
   type T7<'t> = 't * 't * 't * 't * 't * 't * 't
 
   type Rate = float
