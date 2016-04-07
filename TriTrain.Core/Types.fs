@@ -8,7 +8,9 @@ module Types =
     | Id of int
 
   type Name = string
-  type CardName = string
+  type CardName = Name
+  type SkillName = Name
+  type AbilName = Name
 
   type Vertex =
     | Fwd
@@ -51,7 +53,7 @@ module Types =
     | FrontEnemy
     | UnionScope    of list<Scope>
 
-  type ScopeName = string
+  type ScopeName = Name
 
   type NamedScope =
     ScopeName * Scope
@@ -99,7 +101,7 @@ module Types =
     | GenToken      of list<CardSpec>
 
   and SkillAtom =
-    Name * list<OEffect>
+    SkillName * list<OEffect>
 
   /// 行動の効果 (Action Effect)
   and Skill =
@@ -115,7 +117,7 @@ module Types =
     //| WhenDealt
 
   and Ability =
-    string * (TriggerCond * list<OEffect>)
+    AbilName * (TriggerCond * list<OEffect>)
 
   and Status =
     {
@@ -149,7 +151,7 @@ module Types =
 
   type DeckSpec =
     {
-      Name          : string
+      Name          : Name
       Cards         : T7<CardSpec>
     }
 
@@ -164,7 +166,7 @@ module Types =
 
   type PlayerSpec =
     {
-      Name          : string
+      Name          : Name
       Deck          : DeckSpec
     }
 
@@ -224,7 +226,7 @@ module Types =
     IObservable<GameEvent * Game * Game>
 
   type AbilitySrc =
-    list<string>
+    list<AbilName>
 
   /// ユーザが記述するカード仕様
   type CardSpecSrc =
@@ -234,13 +236,13 @@ module Types =
       AG            : int
       Elem          : string
       Abils         : AbilitySrc
-      SkillFwd      : list<string>
-      SkillBwd      : list<string>
+      SkillFwd      : list<SkillName>
+      SkillBwd      : list<SkillName>
     }
 
   type DeckSpecSrc =
     {
-      Name          : string
+      Name          : Name
       Cards         : T7<CardSpecSrc>
     }
 
