@@ -44,6 +44,9 @@ module T7 =
   let init (f: int -> 't): T7<'t> =
     (f 0, f 1, f 2, f 3, f 4, f 5, f 6)
 
+  let map f (x0, x1, x2, x3, x4, x5, x6) =
+    (f x0, f x1, f x2, f x3, f x4, f x5, f x6)
+
 [<RequireQualifiedAccess>]
 module Seq =
   let product xs ys =

@@ -14,6 +14,9 @@ module Elem =
     DU<Elem>.TryParse(name)
     |> failfIfNone "Unknown element '%s'." name
 
+  let toString (elem: Elem) =
+    elem |> string
+
 module Skill =
   let tryFind name: Result<Skill, _> =
     Skill.preset
@@ -30,6 +33,11 @@ module Skill =
         skills |> Skill.ofList
     }
 
+  let toSrcOf row (skills: Map<Row, Skill>): list<Name> =
+    match skills |> Map.tryFind row with
+    | None -> []
+    | Some skill -> skill |> Skill.toNameList
+
 module Ability =
   let ofSrc (src: AbilitySrc) =
     trial {
@@ -45,6 +53,9 @@ module Ability =
             m |> Ability.add abil
             ) Map.empty
     }
+
+  let toSrc (abil: Ability) =
+    abil |> Ability.name
 
 module CardSpec =
   let ofSrc (src: CardSpecSrc) =
@@ -69,6 +80,17 @@ module CardSpec =
         }
     }
 
+  let toSrc (cspec: CardSpec) =
+    {
+      Name        = cspec |> CardSpec.name
+      AT          = cspec |> CardSpec.status |> Status.at
+      AG          = cspec |> CardSpec.status |> Status.ag
+      Elem        = cspec |> CardSpec.elem |> Elem.toString
+      Abils       = cspec |> CardSpec.abilList |> List.map (Ability.toSrc)
+      SkillFwd    = cspec |> CardSpec.skills |> Skill.toSrcOf FwdRow
+      SkillBwd    = cspec |> CardSpec.skills |> Skill.toSrcOf BwdRow
+    }
+
 module DeckSpec =
   let ofSrc (src: DeckSpecSrc): Result<DeckSpec, _> =
     trial {
@@ -86,6 +108,12 @@ module DeckSpec =
           Name      = src.Name
           Cards     = cards
         }
+    }
+
+  let toSrc (dspec: DeckSpec): DeckSpecSrc =
+    {
+      Name        = dspec |> DeckSpec.name
+      Cards       = dspec |> DeckSpec.cards |> T7.map (CardSpec.toSrc)
     }
 
 module DeckSpecSrc =

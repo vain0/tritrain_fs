@@ -209,6 +209,11 @@ module CardSpec =
   let abils       (spec: CardSpec) = spec.Abils
   let skills      (spec: CardSpec) = spec.Skills
 
+  let abilList cspec: list<Ability> =
+    cspec |> abils
+    |> Map.valueList
+    |> List.collect (BatchedQueue.toList)
+
 module Card =
   let cardId      (card: Card) = card.CardId
   let spec        (card: Card) = card.Spec
