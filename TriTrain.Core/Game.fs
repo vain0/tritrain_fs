@@ -394,7 +394,7 @@ module Game =
         g |> updateDuration cardId
         ) g
 
-  let endWith r g =
+  let endIn r g =
     g |> happen (GameEnd r)
 
   let rec procPhaseImpl ph g: Game =
@@ -411,8 +411,8 @@ module Game =
           // 勝敗判定
           match PlayerId.all |> List.filter isLost with
           | []      -> g |> procPhase UpkeepPhase
-          | [plId]  -> g |> endWith (plId |> PlayerId.inverse |> Win)
-          | _       -> g |> endWith Draw
+          | [plId]  -> g |> endIn (plId |> PlayerId.inverse |> Win)
+          | _       -> g |> endIn Draw
 
     | UpkeepPhase ->
         g
@@ -440,7 +440,7 @@ module Game =
         in
           // ターン数更新
           match g |> turn with
-          | 20 -> g |> endWith Draw
+          | 20 -> g |> endIn Draw
           | t  -> { g with Turn = t + 1 } |> procPhase SummonPhase
 
   /// 誘発した能力を解決してからフェイズ処理をする
