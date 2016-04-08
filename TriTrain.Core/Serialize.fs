@@ -117,7 +117,7 @@ module DeckSpec =
     }
 
 module DeckSpecSrc =
-  let deserialize yaml =
+  let deserialize (yaml: string): Result<DeckSpec, _> =
     trial {
       let! src =
         Yaml.myTryLoad<DeckSpecSrc> yaml
@@ -128,17 +128,17 @@ module DeckSpecSrc =
       return spec
     }
 
-  let serialize (self: DeckSpecSrc) =
+  let serialize (self: DeckSpecSrc): string =
     Yaml.dump self
 
-  let load path =
+  let load (path: string): Result<DeckSpec, _> =
     try
       File.ReadAllText(path)
       |> deserialize
     with
     | e -> fail (e.Message)
 
-  let save path (spec: DeckSpecSrc) =
+  let save path (spec: DeckSpecSrc): Result<unit, _> =
     try
       File.WriteAllText(path, spec |> serialize)
       |> pass

@@ -8,7 +8,7 @@ module Game =
   let events      (g: Game) = g.Events
   let triggered   (g: Game) = g.Triggered
 
-  let create plLftSpec plRgtSpec =
+  let create (plLftSpec: PlayerSpec) (plRgtSpec: PlayerSpec): Game =
     let (plLft, deckLft) = Player.create plLftSpec PlLft
     let (plRgt, deckRgt) = Player.create plRgtSpec PlRgt
     let cardMap =
@@ -25,7 +25,7 @@ module Game =
         Events      = Observable.Source<GameEvent * Game>()
       }
 
-  let asObservable g =
+  let asObservable (g: Game): GameEventStream =
     (g |> events).AsObservable
     |> Observable.duplicateFirst
     |> Observable.pairwise

@@ -4,7 +4,7 @@ open System
 open Reflection
 
 module Id =
-  let create =
+  let create: unit -> Id =
     let r = ref 0
     let f () =
       (! r)
@@ -16,7 +16,7 @@ module PlayerId =
   let all =
     DU<PlayerId>.UnitCases
 
-  let inverse =
+  let inverse: PlayerId -> PlayerId =
     function
     | PlLft -> PlRgt
     | PlRgt -> PlLft
@@ -25,7 +25,7 @@ module CardId =
   let id          (cardId: CardId) = cardId.Id
   let owner       (cardId: CardId) = cardId.Owner
 
-  let create plId =
+  let create (plId: PlayerId) =
     {
       Owner       = plId
       Id          = Id.create ()
@@ -44,7 +44,7 @@ module Elem =
     | _ -> false
 
   /// 属性 src が属性 tar を攻撃するときにかかる係数
-  let coeff src tar =
+  let coeff (src: Elem) (tar: Elem): float =
     if   isStrongTo src tar then 1.5
     elif isStrongTo tar src then 0.5
     else 1.0
@@ -57,7 +57,7 @@ module Row =
   let all =
     DU<Row>.UnitCases
 
-  let ofVertex =
+  let ofVertex: Vertex -> Row =
     function
     | Fwd -> FwdRow
     | Lft
@@ -68,7 +68,7 @@ module ScopeSide =
     DU<ScopeSide>.UnitCases
 
   /// plId からみた side 側のリスト
-  let sides plId side =
+  let sides (plId: PlayerId) (side: ScopeSide): list<PlayerId> =
     match side with
     | Home -> [plId]
     | Oppo -> [plId |> PlayerId.inverse]
@@ -77,7 +77,7 @@ module ScopeSide =
 module Scope =
   let name ((name, _): NamedScope) = name
 
-  let rec placeSet ((plId, vx) as source) scope: Set<Place> =
+  let rec placeSet ((plId, vx) as source) (scope: Scope): Set<Place> =
     match scope with
     | AbsScope (homeSet, oppoSet) ->
         [
@@ -142,31 +142,31 @@ module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration
 
-  let create typ duration =
+  let create (typ: KEffectType) (duration: option<int>): KEffect =
     {
       Type        = typ
       Duration    = duration
     }
 
 module Skill =
-  let rec toAtomList =
+  let rec toAtomList: Skill -> list<SkillAtom> =
     function
     | SkillAtom (name, oeffs) -> [(name, oeffs)]
     | SkillList skills -> skills |> List.collect toAtomList
 
-  let toNameList skill =
+  let toNameList (skill: Skill): list<Name> =
     skill |> toAtomList |> List.unzip |> fst
 
-  let toEffectList skill =
+  let toEffectList (skill: Skill): list<OEffect> =
     skill |> toAtomList |> List.unzip |> snd |> List.collect id
 
-  let name skill =
+  let name (skill: Skill): Name =
     match skill |> toNameList with
     | []      -> "Do nothing"
     | [name]  -> name
     | names   -> String.Join(" & ", names)
 
-  let ofList =
+  let ofList: list<Skill> -> Skill =
     function
     | [skill] -> skill
     | skills -> skills |> SkillList
@@ -176,7 +176,7 @@ module Ability =
   let condition   ((_, (cond, _)): Ability) = cond
   let effect      ((_, (_, oeff)): Ability) = oeff
 
-  let add abil abils =
+  let add (abil: Ability) (abils: Map<TriggerCond, BatchedQueue<Ability>>) =
     let cond = abil |> condition
     let q =
       match abils |> Map.tryFind cond with
@@ -189,17 +189,17 @@ module Status =
   let at (st: Status) = st.AT
   let ag (st: Status) = st.AG
 
-  let ofAtAg at ag =
+  let ofAtAg at ag: Status =
     {
       HP = StatusTotal - (at + ag)
       AT = at
       AG = ag
     }
 
-  let toList st =
+  let toList (st: Status): list<int> =
     [ st |> hp; st |> at; st |> ag ]
 
-  let total st =
+  let total (st: Status): int =
     st |> toList |> List.sum
 
 module CardSpec =
@@ -209,7 +209,7 @@ module CardSpec =
   let abils       (spec: CardSpec) = spec.Abils
   let skills      (spec: CardSpec) = spec.Skills
 
-  let abilList cspec: list<Ability> =
+  let abilList (cspec: CardSpec): list<Ability> =
     cspec |> abils
     |> Map.valueList
     |> List.collect (BatchedQueue.toList)
@@ -220,7 +220,7 @@ module Card =
   let curHp       (card: Card) = card.CurHP
   let effects     (card: Card) = card.Effects
 
-  let create spec cardId =
+  let create (spec: CardSpec) (cardId: CardId): Card =
     {
       CardId        = cardId
       Spec          = spec
@@ -360,8 +360,8 @@ module DeckSpec =
   let cards       (spec: DeckSpec) = spec.Cards
 
 module Deck =
-  let create (spec) (plId) =
-    spec
+  let create (cards: T7<CardSpec>) (plId: PlayerId): list<Card> =
+    cards
     |> T7.toList
     |> List.map (fun cardSpec ->
         let cardId = CardId.create plId
@@ -383,7 +383,7 @@ module Board =
             else Some (cardId, v, v')
             )
 
-  let emptyVertexSet board =
+  let emptyVertexSet (board: Board): Set<Vertex> =
     board
     |> Map.keySet
     |> Set.difference (Vertex.all |> Set.ofList)
@@ -392,7 +392,7 @@ module PlayerSpec =
   let name        (spec: PlayerSpec) = spec.Name
   let deck        (spec: PlayerSpec) = spec.Deck
 
-  let create name deck =
+  let create (name: Name) (deck: DeckSpec): PlayerSpec =
     {
       Name          = name
       Deck          = deck
@@ -405,7 +405,7 @@ module Player =
   let board       (pl: Player) = pl.Board
   let trash       (pl: Player) = pl.Trash
 
-  let create spec plId =
+  let create (spec: PlayerSpec) (plId: PlayerId): (Player * list<Card>) =
     let deck' =
       Deck.create (spec |> PlayerSpec.deck |> DeckSpec.cards) plId
     let pl =

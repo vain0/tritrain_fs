@@ -105,11 +105,11 @@ module Skill =
 
   /// プリセットに含まれる行動か？
   /// (名前は異なっていてもよい。)
-  let isPreset skill =
+  let isPreset (skill: Skill): bool =
     presetOEffectsSet |> Set.contains (skill |> Skill.toEffectList)
 
   /// プリセットに含まれる行動の組み合わせか？
-  let isPresetList skill =
+  let isPresetList (skill: Skill): bool =
     let b1 = skill |> isPreset
     let b2 =
       match skill with
@@ -128,7 +128,7 @@ module Ability =
       ("神速"         , (WhenEtB, give (agInc (One, 30.0) 1) self))
     ]
 
-  let preset =
+  let preset: Map<Name, Ability> =
     presetList
     |> List.map (fun ((name, _) as abil) -> (name, abil))
     |> Map.ofList
@@ -136,5 +136,5 @@ module Ability =
   let internal presetSet: Set<(TriggerCond * list<OEffect>)> =
     presetList |> List.map snd |> set
 
-  let isPreset (abil: Ability) =
+  let isPreset (abil: Ability): bool =
     presetSet |> Set.contains (abil |> snd)
