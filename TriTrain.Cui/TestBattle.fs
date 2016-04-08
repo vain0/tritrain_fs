@@ -19,10 +19,14 @@ module TestBattle =
       return (pl1, pl2)
     }
 
-  let runGameWithObserver observe (pl1, pl2): Game =
+  let runGameWithObserver observe (pl1, pl2): Game * GameResult =
     let g = Game.create pl1 pl2
     use o = observe g
     in g |> Game.run
+
+  let calcGameResult (pl1, pl2): GameResult =
+    let g = Game.create pl1 pl2
+    in g |> Game.run |> snd
 
   let showGame deckPaths =
     trial {
@@ -42,10 +46,10 @@ module TestBattle =
       | Win PlRgt   -> Interlocked.Increment(& lose)
       | Draw        -> Interlocked.Increment(& draw)
       >> ignore
-    let gs =
+    let (_: unit []) =
       [ for _ in 1..times ->
           async {
-            return runGameWithObserver (ResultNotifier.observe inc) plPair
+            return calcGameResult plPair |> inc
           }
       ]
       |> Async.Parallel

@@ -135,14 +135,3 @@ module Broadcaster =
     g
     |> Game.asObservable
     |> Observable.subscribe printEvent
-
-module ResultNotifier =
-  let readEvent onEnd (ev, g, g') =
-    match ev with
-    | GameEnd r -> onEnd r
-    | _ -> ()
-
-  let observe onEnd g: IDisposable =
-    g
-    |> Game.asObservable
-    |> Observable.subscribe (readEvent onEnd)
