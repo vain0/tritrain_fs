@@ -395,9 +395,9 @@ module Game =
         ) g
 
   let endIn r g =
-    g |> happen (GameEnd r)
+    (g |> happen (GameEnd r), r)
 
-  let rec procPhaseImpl ph g: Game =
+  let rec procPhaseImpl ph g =
     match ph with
     | SummonPhase ->
         let g =
@@ -447,7 +447,7 @@ module Game =
   and procPhase ph g =
     g |> solveTriggered |> procPhaseImpl ph
 
-  let run g: Game =
+  let run g: Game * GameResult =
     g
     |> happen GameBegin
     |> procRegenerationPhase

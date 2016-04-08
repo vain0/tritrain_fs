@@ -19,7 +19,7 @@ module TestBattle =
       return (pl1, pl2)
     }
 
-  let runGameWithObserver observe (pl1, pl2): Game =
+  let runGameWithObserver observe (pl1, pl2): Game * GameResult =
     let g = Game.create pl1 pl2
     use o = observe g
     in g |> Game.run
