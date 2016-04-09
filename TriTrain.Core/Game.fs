@@ -1,5 +1,7 @@
 ﻿namespace TriTrain.Core
 
+open Chessie.ErrorHandling
+
 module Game =
   let plLft       (g: Game) = g.PlLft
   let plRgt       (g: Game) = g.PlRgt
@@ -106,6 +108,18 @@ module Game =
             ) g
     | _ -> g
 
+  /// カードを盤面に出す
+  let summon cardId (plId, vx) g =
+    let board = g |> board plId
+    let () =
+      assert (board |> Map.containsKey vx |> not)
+    in
+      g
+      |> updateBoard plId
+          (board |> Map.add vx cardId)
+      |> happen (CardEnter (cardId, (plId, vx)))
+      |> triggerAbils WhenEtB cardId
+
   let dieCard cardId g =
     match g |> searchBoardFor cardId with
     | None -> g
@@ -180,6 +194,26 @@ module Game =
           g |> giveKEffect targetId keff
     in g
 
+  let resurrect actorOpt amount g =
+    trial {
+      let! actor    = actorOpt |> failIfNone ()
+      let  plId     = actor |> Card.owner
+      let  trash    = g |> trash plId
+      let! tarId    = trash |> Random.element |> failIfNone ()
+      let  board    = g |> board plId
+      let! vx       = board |> Board.emptyVertexSet |> Random.element |> failIfNone ()
+      let  trash'   = trash |> Set.filter ((<>) tarId)
+      let  tar      = g |> card tarId
+      let  rate     = Amount.resolve (Some actor) amount |> flip (/) 100.0
+      let  hp       = tar |> Card.maxHp |> float |> (*) rate |> int
+      let  tar'     = tar |> Card.setHp hp
+      return
+        g
+        |> updateCard tar'
+        |> updateTrash plId trash'
+        |> summon tarId (plId, vx)
+    } |> Trial.either fst (fun _ -> g)
+
   /// moves: (移動するカードのID, 元の位置, 後の位置) の列
   /// 移動後の盤面の整合性は、利用側が担保すること。
   let moveCards (moves: list<CardId * Place * Place>) g =
@@ -221,6 +255,9 @@ module Game =
     match oeff with
     | GenToken cardSpecs ->
         g // TODO: トークン生成
+
+    | Resurrect amount ->
+        g |> resurrect actorOpt amount
 
     | Swap (_, scope) ->
         match scope |> Scope.placeSet source |> Set.toList with
@@ -297,28 +334,19 @@ module Game =
 
   /// プレイヤー plId が位置 vx にデッキトップを召喚する。
   /// デッキが空なら何もしない。
-  let summon plId vx g =
-    let deck  = g |> deck plId
-    let board = g |> board plId
-    let () =
-      assert (board |> Map.containsKey vx |> not)
-    let g =
-      match deck with
-      | [] -> g
-      | cardId :: deck' ->
-          g
-          |> updateDeck plId deck'
-          |> updateBoard plId
-              (board |> Map.add vx cardId)
-          |> happen (CardEnter (cardId, (plId, vx)))
-          |> triggerAbils WhenEtB cardId
-    in g
+  let summonFromTop (plId, vx) g =
+    match g |> deck plId with
+    | [] -> g
+    | cardId :: deck' ->
+        g
+        |> updateDeck plId deck'
+        |> summon cardId (plId, vx)
 
   let procSummonPhase plId g =
     g
     |> board plId
     |> Board.emptyVertexSet
-    |> Set.fold (fun g vx -> g |> summon plId vx) g
+    |> Set.fold (fun g vx -> g |> summonFromTop (plId, vx)) g
 
   /// 全体に再生効果をかける
   let procRegenerationPhase g =
