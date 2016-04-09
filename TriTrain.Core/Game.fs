@@ -335,8 +335,8 @@ module Game =
         g
         |> cardMap
         |> Map.filter (fun _ card -> card |> Card.owner = plId)
-        |> Map.fold (fun g cardId card ->
-            g |> giveKEffect cardId (keff |> Amount.resolveKEffect None card)
+        |> Map.fold (fun g cardId _ ->
+            g |> procOEffectToUnit None cardId (Give keff)
             ) g
     let g =
       PlayerId.all
