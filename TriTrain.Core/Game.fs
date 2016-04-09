@@ -67,6 +67,9 @@ module Game =
   let happen ev g =
     g |> tap (fun g -> (g |> events).Next(ev, g))
 
+  let endIn r g =
+    (g |> happen (GameEnd r), r)
+
   let trigger trig g =
     { g with Triggered = trig :: (g |> triggered) }
     |> happen (CardAbilityTrigger trig)
@@ -390,9 +393,6 @@ module Game =
     |> Set.fold (fun g cardId ->
         g |> updateDuration cardId
         ) g
-
-  let endIn r g =
-    (g |> happen (GameEnd r), r)
 
   let rec procPhaseImpl ph g =
     match ph with
