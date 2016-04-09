@@ -2,6 +2,7 @@
 
 open System
 open TriTrain.Core
+open Microsoft.FSharp.Control
 
 module Broadcaster =
   let colorFromPlayerId =
@@ -134,4 +135,7 @@ module Broadcaster =
   let observe g: IDisposable =
     g
     |> Game.asObservable
+    |> Observable.duplicateFirst
+    |> Observable.pairwise
+    |> Observable.map (fun ((_, g), (ev, g')) -> (ev, g, g'))
     |> Observable.subscribe printEvent

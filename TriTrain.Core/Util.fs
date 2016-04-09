@@ -163,6 +163,21 @@ module Random =
 module Observable =
   open System.Diagnostics
 
+  let subscribeAll
+      (onNext: 't -> unit)
+      (onError: exn -> unit)
+      (onCompleted: unit -> unit)
+      (obs: IObservable<'t>)
+      : IDisposable
+    =
+    let observer =
+      { new IObserver<'t> with
+          member this.OnNext(x) = onNext x
+          member this.OnError(e) = onError e
+          member this.OnCompleted() = onCompleted ()
+      }
+    in obs.Subscribe(observer)
+
   let indexed (obs: IObservable<'x>): IObservable<'x * int> =
     obs
     |> Observable.scan

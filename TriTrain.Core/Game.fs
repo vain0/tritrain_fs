@@ -27,9 +27,6 @@ module Game =
 
   let asObservable (g: Game): GameEventStream =
     (g |> events).AsObservable
-    |> Observable.duplicateFirst
-    |> Observable.pairwise
-    |> Observable.map (fun ((_, g), (ev, g')) -> (ev, g, g'))
 
   let player plId g =
     match plId with
@@ -69,6 +66,11 @@ module Game =
 
   let happen ev g =
     g |> tap (fun g -> (g |> events).Next(ev, g))
+
+  let endIn r g =
+    let g     = g |> happen (GameEnd r)
+    let ()    = (g |> events).Completed()
+    in (g, r)
 
   let trigger trig g =
     { g with Triggered = trig :: (g |> triggered) }
@@ -393,9 +395,6 @@ module Game =
     |> Set.fold (fun g cardId ->
         g |> updateDuration cardId
         ) g
-
-  let endIn r g =
-    (g |> happen (GameEnd r), r)
 
   let rec procPhaseImpl ph g =
     match ph with
