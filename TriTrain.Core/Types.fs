@@ -223,7 +223,7 @@ module Types =
     }
 
   type GameEventStream =
-    IObservable<GameEvent * Game * Game>
+    IObservable<GameEvent * Game>
 
   type AbilitySrc =
     list<AbilName>

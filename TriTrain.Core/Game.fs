@@ -27,9 +27,6 @@ module Game =
 
   let asObservable (g: Game): GameEventStream =
     (g |> events).AsObservable
-    |> Observable.duplicateFirst
-    |> Observable.pairwise
-    |> Observable.map (fun ((_, g), (ev, g')) -> (ev, g, g'))
 
   let player plId g =
     match plId with
