@@ -106,6 +106,18 @@ module Game =
             ) g
     | _ -> g
 
+  /// カードを盤面に出す
+  let summon cardId (plId, vx) g =
+    let board = g |> board plId
+    let () =
+      assert (board |> Map.containsKey vx |> not)
+    in
+      g
+      |> updateBoard plId
+          (board |> Map.add vx cardId)
+      |> happen (CardEnter (cardId, (plId, vx)))
+      |> triggerAbils WhenEtB cardId
+
   let dieCard cardId g =
     match g |> searchBoardFor cardId with
     | None -> g
@@ -297,28 +309,19 @@ module Game =
 
   /// プレイヤー plId が位置 vx にデッキトップを召喚する。
   /// デッキが空なら何もしない。
-  let summon plId vx g =
-    let deck  = g |> deck plId
-    let board = g |> board plId
-    let () =
-      assert (board |> Map.containsKey vx |> not)
-    let g =
-      match deck with
-      | [] -> g
-      | cardId :: deck' ->
-          g
-          |> updateDeck plId deck'
-          |> updateBoard plId
-              (board |> Map.add vx cardId)
-          |> happen (CardEnter (cardId, (plId, vx)))
-          |> triggerAbils WhenEtB cardId
-    in g
+  let summonFromTop (plId, vx) g =
+    match g |> deck plId with
+    | [] -> g
+    | cardId :: deck' ->
+        g
+        |> updateDeck plId deck'
+        |> summon cardId (plId, vx)
 
   let procSummonPhase plId g =
     g
     |> board plId
     |> Board.emptyVertexSet
-    |> Set.fold (fun g vx -> g |> summon plId vx) g
+    |> Set.fold (fun g vx -> g |> summonFromTop (plId, vx)) g
 
   /// 全体に再生効果をかける
   let procRegenerationPhase g =
