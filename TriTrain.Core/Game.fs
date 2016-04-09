@@ -165,8 +165,9 @@ module Game =
     let g         = g |> happen (CardGainEffect (targetId, keff))
     in g
 
-  let rec procOEffectToUnit actorOpt targetId oeffType g =
+  let rec procOEffectToUnit actorIdOpt targetId oeffType g =
     let target    = g |> card targetId
+    let actorOpt  = actorIdOpt |> Option.map (fun actorId -> g |> card actorId)
     let oeffType  = Amount.resolveOEffectToUnit actorOpt target oeffType
     let g =
       match oeffType with
@@ -194,9 +195,10 @@ module Game =
           g |> giveKEffect targetId keff
     in g
 
-  let resurrect actorOpt amount g =
+  let resurrect actorIdOpt amount g =
     trial {
-      let! actor    = actorOpt |> failIfNone ()
+      let! actorId  = actorIdOpt |> failIfNone ()
+      let  actor    = g |> card actorId
       let  plId     = actor |> Card.owner
       let  trash    = g |> trash plId
       let! tarId    = trash |> Random.element |> failIfNone ()
@@ -251,13 +253,13 @@ module Game =
           )
     in g |> moveCards moves
 
-  let rec procOEffect actorOpt (source: Place) oeff g =
+  let rec procOEffect (actorIdOpt: option<CardId>) (source: Place) oeff g =
     match oeff with
     | GenToken cardSpecs ->
         g // TODO: トークン生成
 
     | Resurrect amount ->
-        g |> resurrect actorOpt amount
+        g |> resurrect actorIdOpt amount
 
     | Swap (_, scope) ->
         match scope |> Scope.placeSet source |> Set.toList with
@@ -277,19 +279,19 @@ module Game =
               )
         let g =
           targets |> List.fold (fun g cardId ->
-              g |> procOEffectToUnit actorOpt cardId typ
+              g |> procOEffectToUnit actorIdOpt cardId typ
               ) g
         in g
 
-  let rec procOEffectList actorOpt source oeffs g =
+  let rec procOEffectList actorIdOpt source oeffs g =
     oeffs
     |> List.fold (fun g oeff ->
         let source =  // actor の最新の位置に更新する
-          actorOpt
+          actorIdOpt
           |> Option.bind
-              (fun actor -> g |> searchBoardFor (actor |> Card.cardId))
+              (fun actorId -> g |> searchBoardFor actorId)
           |> Option.getOr source
-        in g |> procOEffect actorOpt source oeff
+        in g |> procOEffect actorIdOpt source oeff
         ) g
 
   /// 未行動な最速カード
@@ -307,29 +309,26 @@ module Game =
 
   /// カード actor の行動を処理する
   let procAction actorId vx g =
-    let actor = g |> card actorId
-    in
-      match actor |> Card.tryGetActionOn vx with
-      | None -> g
-      | Some skill ->
-          g
-          |> happen (CardBeginAction (actorId, skill))
-          |> procOEffectList
-              (Some actor) (actorId |> CardId.owner, vx)
-              (skill |> Skill.toEffectList)
+    match g |> card actorId |> Card.tryGetActionOn vx with
+    | None -> g
+    | Some skill ->
+        g
+        |> happen (CardBeginAction (actorId, skill))
+        |> procOEffectList
+            (Some actorId) (actorId |> CardId.owner, vx)
+            (skill |> Skill.toEffectList)
 
   /// 誘発した能力を解決する
   let rec solveTriggered g =
     match g |> triggered with
     | [] -> g
     | trig :: triggered' ->
-        let (cardId, source, (_, (_, oeffs))) = trig
-        let source    = g |> searchBoardFor cardId |> Option.getOr source
-        let actor     = g |> card cardId
+        let (actorId, source, (_, (_, oeffs))) = trig
+        let source    = g |> searchBoardFor actorId |> Option.getOr source
         in
           { g with Triggered = triggered' }
           |> happen (SolveTriggered trig)
-          |> procOEffectList (Some actor) source oeffs
+          |> procOEffectList (Some actorId) source oeffs
           |> solveTriggered
 
   /// プレイヤー plId が位置 vx にデッキトップを召喚する。
@@ -388,7 +387,7 @@ module Game =
         |> placeMap
         |> Map.filter (fun _ cardId -> cardId |> CardId.owner = PlRgt)
         |> Map.fold (fun g source actorId ->
-            g |> procOEffect (g |> card actorId |> Some) source oeff
+            g |> procOEffect (actorId |> Some) source oeff
             ) g
 
   /// カードにかかっている継続的効果の経過ターン数を更新する
