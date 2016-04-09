@@ -1,5 +1,7 @@
 ﻿namespace TriTrain.Core
 
+open Chessie.ErrorHandling
+
 module Game =
   let plLft       (g: Game) = g.PlLft
   let plRgt       (g: Game) = g.PlRgt
@@ -192,6 +194,26 @@ module Game =
           g |> giveKEffect targetId keff
     in g
 
+  let resurrect actorOpt amount g =
+    trial {
+      let! actor    = actorOpt |> failIfNone ()
+      let  plId     = actor |> Card.owner
+      let  trash    = g |> trash plId
+      let! tarId    = trash |> Random.element |> failIfNone ()
+      let  board    = g |> board plId
+      let! vx       = board |> Board.emptyVertexSet |> Random.element |> failIfNone ()
+      let  trash'   = trash |> Set.filter ((<>) tarId)
+      let  tar      = g |> card tarId
+      let  rate     = Amount.resolve (Some actor) amount |> flip (/) 100.0
+      let  hp       = tar |> Card.maxHp |> float |> (*) rate |> int
+      let  tar'     = tar |> Card.setHp hp
+      return
+        g
+        |> updateCard tar'
+        |> updateTrash plId trash'
+        |> summon tarId (plId, vx)
+    } |> Trial.either fst (fun _ -> g)
+
   /// moves: (移動するカードのID, 元の位置, 後の位置) の列
   /// 移動後の盤面の整合性は、利用側が担保すること。
   let moveCards (moves: list<CardId * Place * Place>) g =
@@ -233,6 +255,9 @@ module Game =
     match oeff with
     | GenToken cardSpecs ->
         g // TODO: トークン生成
+
+    | Resurrect amount ->
+        g |> resurrect actorOpt amount
 
     | Swap (_, scope) ->
         match scope |> Scope.placeSet source |> Set.toList with

@@ -96,6 +96,7 @@ module Types =
   type OEffect =
     | OEffectToUnits
       of OEffectToUnitType * NamedScope
+    | Resurrect     of Amount
     | Swap          of NamedScope
     | Rotate        of ScopeSide
     | GenToken      of list<CardSpec>

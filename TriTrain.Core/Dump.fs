@@ -73,6 +73,8 @@ module Dump =
     match oeff with
     | OEffectToUnits (typ, scope) ->
         dumpOEffectToUnit (typ, scope)
+    | Resurrect amount ->
+        "味方1体を最大HPの" + dumpAmount amount + "持った状態で蘇生する。"
     | Swap scope ->
         dumpScope scope + "を交代する。"
     | Rotate scopeSide ->
