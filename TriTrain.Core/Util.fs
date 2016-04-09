@@ -18,6 +18,11 @@ module Misc =
 
   type Rate = float
 
+[<RequireQualifiedAccess>]
+module T2 =
+  let toList (x0, x1): list<_> =
+    [x0; x1]
+
 [<AutoOpen>]
 module T7 =
   let toList (x0, x1, x2, x3, x4, x5, x6): list<_> =
