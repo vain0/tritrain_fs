@@ -91,6 +91,11 @@ module Skill =
       , pair
           (give (atInc (AT, 0.05) 2) homeAll)
           (give (agInc (AT, 0.05) 2) homeAll) )
+
+      ("奇跡"
+      , pair
+          [Resurrect (AT, 0.30)]
+          (give (agInc (AT, -0.30) 2) homeAll) )
     ]
 
   let preset: Map<Name, Skill> =
