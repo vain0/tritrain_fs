@@ -5,7 +5,7 @@ open System
 open Chessie.ErrorHandling
 
 module PrintPreset =
-  let printSkillsTable () =
+  let dumpPresetSkillsToMarkdown () =
     let rows =
       Preset.Skill.presetList
       |> List.map (fun (name, oeffs) ->
@@ -18,9 +18,9 @@ module PrintPreset =
 |Name|Text|
 |:---|:---|
 """
-    do printfn "%s" (header + rows)
+    in header + rows
 
-  let printAbilsTable () =
+  let dumpPresetAbilsToMarkdown () =
     let rows =
       Preset.Ability.presetList
       |> List.map (fun (name, (cond, oeffs)) ->
@@ -36,10 +36,10 @@ module PrintPreset =
 |Name|Cond|Text|
 |:---|:---|:---|
 """
-    do printfn "%s" (header + rows)
+    in header + rows
 
   let showEffectsCommand () =
     trial {
-      do printSkillsTable ()
-      do printAbilsTable ()
+      do printfn "%s" (dumpPresetSkillsToMarkdown ())
+      do printfn "%s" (dumpPresetAbilsToMarkdown ())
     }
