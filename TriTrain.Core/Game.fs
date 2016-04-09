@@ -209,6 +209,13 @@ module Game =
     in
       match scope |> Scope.aggregate with
       | Each -> targets ()
+      | MaxBy (var, rev) ->
+          targets ()
+          |> List.tryMaxBy (fun cardId ->
+              (var, if rev then -1.0 else 1.0)
+              |> Amount.resolve (g |> card cardId |> Some)
+              )
+          |> Option.toList
 
   let resurrect actorIdOpt amount g =
     trial {

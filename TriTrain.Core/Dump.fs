@@ -10,6 +10,13 @@ module Dump =
     | FwdRow -> "前列"
     | BwdRow -> "後列"
 
+  let dumpVarType =
+    function
+    | MaxHP -> "最大HP"
+    | AT -> "AT"
+    | AG -> "AG"
+    | One -> "1"  // never
+
   let dumpAmount (var, rate) =
     match var with
     | MaxHP -> "最大HP×" + string rate
@@ -31,6 +38,11 @@ module Dump =
     in
       match scope |> Scope.aggregate with
       | Each -> form + "(それぞれ)"
+      | MaxBy (var, rev) ->
+          sprintf "%sで%sが%sのもの"
+            form
+            (dumpVarType var)
+            (if rev then "最小" else "最大")
 
   let dumpCond =
     function

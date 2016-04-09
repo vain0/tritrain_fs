@@ -152,6 +152,18 @@ module Scope =
       Aggregate   = Each
     }
 
+  let maxBy var form =
+    {
+      Form        = form
+      Aggregate   = MaxBy (var, false)
+    }
+
+  let minBy var form =
+    {
+      Form        = form
+      Aggregate   = MaxBy (var, true)
+    }
+
 module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration

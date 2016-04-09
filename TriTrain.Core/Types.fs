@@ -69,6 +69,7 @@ module Types =
   /// Aggregation
   type ScopeAggregate =
     | Each
+    | MaxBy         of VarType * rev: bool
 
   type Scope =
     {
