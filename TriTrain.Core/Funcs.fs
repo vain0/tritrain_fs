@@ -344,6 +344,10 @@ module Amount =
           match actor with
           | Some actor -> actor |> Card.maxHp |> float
           | None -> 0.0
+      | HP ->
+          match actor with
+          | Some actor -> actor |> Card.curHp |> float
+          | None -> 0.0
       | AT ->
           match actor with
           | Some actor -> actor |> Card.curAt |> float

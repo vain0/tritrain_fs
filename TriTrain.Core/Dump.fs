@@ -13,16 +13,15 @@ module Dump =
   let dumpVarType =
     function
     | MaxHP -> "最大HP"
+    | HP -> "HP"
     | AT -> "AT"
     | AG -> "AG"
     | One -> "1"  // never
 
   let dumpAmount (var, rate) =
     match var with
-    | MaxHP -> "最大HP×" + string rate
-    | AT -> "AT×" + string rate
-    | AG -> "AG×" + string rate
     | One -> rate |> int |> string
+    | var -> dumpVarType var + "×" + string rate
 
   let dumpScopeSide =
     function

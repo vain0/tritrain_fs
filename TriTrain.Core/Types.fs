@@ -21,6 +21,7 @@ module Types =
   type VarType =
     | One
     | MaxHP  // unused
+    | HP
     | AT
     | AG
 
