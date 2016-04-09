@@ -353,15 +353,14 @@ module Game =
     then g
     else
       let keff = KEffect.create (AGInc (AG, 0.10)) (Some 1)
+      let oeff = OEffectToUnits (Give keff, Preset.Scope.self)
       in
         g
         |> happen WindBlow
         |> placeMap
         |> Map.filter (fun _ cardId -> cardId |> CardId.owner = PlRgt)
-        |> Map.fold (fun g _ actorId ->
-            let actor   = g |> card actorId
-            let keff    = keff |> Amount.resolveKEffect (Some actor) actor
-            in g |> giveKEffect actorId keff
+        |> Map.fold (fun g source actorId ->
+            g |> procOEffect (g |> card actorId |> Some) source oeff
             ) g
 
   /// カードにかかっている継続的効果の経過ターン数を更新する
