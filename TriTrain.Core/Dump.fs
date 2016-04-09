@@ -106,3 +106,36 @@ module Dump =
       (spec |> CardSpec.status |> dumpStatus)
       (spec |> CardSpec.skills |> dumpSkillOf FwdRow)
       (spec |> CardSpec.skills |> dumpSkillOf BwdRow)
+
+  let dumpPresetSkillsToMarkdown () =
+    let rows =
+      Preset.Skill.presetList
+      |> List.map (fun (name, oeffs) ->
+          sprintf "|%s|%s|" name (oeffs |> dumpOEffectList)
+          )
+      |> String.concat (Environment.NewLine)
+    let header =
+        """
+## 行動(Skills)
+|Name|Text|
+|:---|:---|
+"""
+    in header + rows
+
+  let dumpPresetAbilsToMarkdown () =
+    let rows =
+      Preset.Ability.presetList
+      |> List.map (fun (name, (cond, oeffs)) ->
+          sprintf "|%s|%s|%s|"
+            name
+            (cond |> dumpCond)
+            (oeffs |> dumpOEffectList)
+          )
+      |> String.concat (Environment.NewLine)
+    let header =
+        """
+## 能力(Abilities)
+|Name|Cond|Text|
+|:---|:---|:---|
+"""
+    in header + rows

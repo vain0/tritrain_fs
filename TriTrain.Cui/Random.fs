@@ -2,10 +2,11 @@
 
 open TriTrain.Core
 open TriTrain.Core.Serialize
+open System
 open Chessie.ErrorHandling
 
 module Random =
-  let (|RandomCommand|_|): list<string> -> option<Result<unit, string>> =
+  let (|Random|_|) =
     function
     | "rand" :: _ ->
         trial {

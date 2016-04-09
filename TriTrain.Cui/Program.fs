@@ -1,8 +1,8 @@
 namespace TriTrain.Cui
 
 open TriTrain.Core
+open TriTrain.Cui.Random
 open TriTrain.Cui.TestBattle
-open TriTrain.Cui.PrintPreset
 open System
 open Chessie.ErrorHandling
 
@@ -17,11 +17,6 @@ rand                    Generate random deck
 effs                    Show preset effects
 """
 
-  let (|RoundRobin|_|) =
-    function
-    | "rr" | "round-robin" -> Some ()
-    | _ -> None
-
   let rec procCommandArgs =
     function
     | [] ->
@@ -30,25 +25,16 @@ effs                    Show preset effects
           return! args |> procCommandArgs
         }
 
-    | ["show"] ->
-        procCommandArgs ("show" :: defaultDeckPaths)
-    | "show" :: deckPath1 :: deckPath2 :: _ ->
-        showGame (deckPath1, deckPath2)
-
-    | ["test"] ->
-        procCommandArgs ("test" :: defaultDeckPaths)
-    | "test" :: deckPath1 :: deckPath2 :: _ ->
-        testBattleCommand (deckPath1, deckPath2)
-
-    | [RoundRobin] ->
-        procCommandArgs ("round-robin" :: defaultDeckPaths)
-     | RoundRobin :: deckPaths ->
-        roundRobinCommand deckPaths
-
-    | Random.RandomCommand r -> r
+    | ShowGame r -> r
+    | TestBattle r -> r
+    | RoundRobin r -> r
+    | Random r -> r
 
     | ["effs"] ->
-        showEffectsCommand ()
+        trial {
+          do printfn "%s" (Dump.dumpPresetSkillsToMarkdown ())
+          do printfn "%s" (Dump.dumpPresetAbilsToMarkdown ())
+        }
 
     | _ ->
         printfn "%s" (usage ()) |> pass

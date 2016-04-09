@@ -65,6 +65,7 @@
     <Compile Include="Validate.fs" />
     <Compile Include="Serialize.fs" />
     <Compile Include="Dump.fs" />
+    <Compile Include="TestBattle.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

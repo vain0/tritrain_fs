@@ -2,13 +2,27 @@
 
 open TriTrain.Core
 open TriTrain.Core.Serialize
+open TriTrain.Core.TestBattle
 open System
-open System.Threading
 open Chessie.ErrorHandling
 
 module TestBattle =
   let defaultDeckPaths =
-    ["l.trtrdeck"; "r.trtrdeck"]
+    ("l.trtrdeck", "r.trtrdeck")
+
+  /// Accept two deck paths or use default deck paths
+  let (|DeckPathPair|) =
+    function
+    | deck1 :: deck2 :: rest ->
+        ((deck1, deck2), rest)
+    | rest ->
+        (defaultDeckPaths, rest)
+
+  let (|DeckPathList|_|) =
+    function
+    | [] -> defaultDeckPaths |> T2.toList |> Some
+    | [_] -> None
+    | (_ :: _ :: _) as deckPathList -> deckPathList |> Some
 
   let loadDecks (deckPath1, deckPath2) =
     trial {
@@ -19,62 +33,29 @@ module TestBattle =
       return (pl1, pl2)
     }
 
-  let runGameWithObserver observe (pl1, pl2): Game * GameResult =
-    let g = Game.create pl1 pl2
-    use o = observe g
-    in g |> Game.run
-
-  let calcGameResult (pl1, pl2): GameResult =
-    let g = Game.create pl1 pl2
-    in g |> Game.run |> snd
-
-  let showGame deckPaths =
-    trial {
-      let! plPair = loadDecks deckPaths
-      let _ = runGameWithObserver (Broadcaster.observe) plPair
-      in ()
-    }
-
-  /// 先攻・後攻を固定して2つのデッキを times 回戦わせ、その結果の集計を得る。
-  let testBattle times plPair =
-    let mutable win  = 0
-    let mutable lose = 0
-    let mutable draw = 0
-    let inc =
-      function
-      | Win PlLft   -> Interlocked.Increment(& win)
-      | Win PlRgt   -> Interlocked.Increment(& lose)
-      | Draw        -> Interlocked.Increment(& draw)
-      >> ignore
-    let (_: unit []) =
-      [ for _ in 1..times ->
-          async {
-            return calcGameResult plPair |> inc
-          }
-      ]
-      |> Async.Parallel
-      |> Async.RunSynchronously
-    in (win, lose, draw)
+  let (|ShowGame|_|) =
+    function
+    | "show" :: DeckPathPair (deckPaths, _) ->
+        trial {
+          let! plPair = loadDecks deckPaths
+          let _ = runGameWithObserver (Broadcaster.observe) plPair
+          in ()
+        } |> Some
+    | _ -> None
 
   let stringizeResult (win, lose, draw) =
     sprintf "Win %d - Lose %d - Draw %d" win lose draw
 
-  let testBattleCommand deckPaths =
-    trial {
-      let! plPair = loadDecks deckPaths
-      let result = testBattle 10 plPair
-      let () = printfn "%s" (stringizeResult result)
-      in ()
-    }
-
-  /// 総当たりでテストバトルを行う
-  let roundRobin times pls =
-    Seq.product pls pls
-    |> Seq.map (fun plPair -> async {
-        return (plPair, testBattle 10 plPair)
-        })
-    |> Async.Parallel
-    |> Async.RunSynchronously
+  let (|TestBattle|_|) =
+    function
+    | "test" :: DeckPathPair (deckPaths, _) ->
+        trial {
+          let! plPair = loadDecks deckPaths
+          let result = testBattle 10 plPair
+          let () = printfn "%s" (stringizeResult result)
+          in ()
+        } |> Some
+    | _ -> None
 
   // 総当たりの結果をリスト形式で表示する
   let printRoundRobinResultsAsList results =
@@ -84,16 +65,19 @@ module TestBattle =
         (pl2 |> PlayerSpec.name)
         (stringizeResult result)
 
-  let roundRobinCommand deckPaths =
-    trial {
-      let! decks =
-        deckPaths
-        |> List.map (DeckSpecSrc.load)
-        |> Trial.collect
-      let pls =
-        [ for deck in decks ->
-            PlayerSpec.create (deck |> DeckSpec.name) deck ]
-      let results =
-        roundRobin 10 pls
-      do printRoundRobinResultsAsList results
-    }
+  let (|RoundRobin|_|) =
+    function
+    | ("rr" | "round-robin") :: DeckPathList deckPaths ->
+        trial {
+          let! decks =
+            deckPaths
+            |> List.map (DeckSpecSrc.load)
+            |> Trial.collect
+          let pls =
+            [ for deck in decks ->
+                PlayerSpec.create (deck |> DeckSpec.name) deck ]
+          let results =
+            roundRobin 10 pls
+          do printRoundRobinResultsAsList results
+        } |> Some
+    | _ -> None
