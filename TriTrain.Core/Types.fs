@@ -66,9 +66,14 @@ module Types =
   type ScopeForm =
     Name * ScopeFormType
 
+  /// Aggregation
+  type ScopeAggregate =
+    | Each
+
   type Scope =
     {
       Form          : ScopeForm
+      Aggregate     : ScopeAggregate
     }
 
   type Duration =

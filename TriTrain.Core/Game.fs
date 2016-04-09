@@ -197,11 +197,18 @@ module Game =
     in g
 
   let findTargets source scope g =
-    scope |> Scope.form |> ScopeForm.placeSet source
-    |> Set.toList
-    |> List.choose (fun (plId, vx) ->
-        g |> board plId |> Map.tryFind vx
-        )
+    let places =
+      scope |> Scope.form
+      |> ScopeForm.placeSet source
+      |> Set.toList
+    let targets () =  // 生存しているカードの列
+      places
+      |> List.choose (fun (plId, vx) ->
+          g |> board plId |> Map.tryFind vx
+          )
+    in
+      match scope |> Scope.aggregate with
+      | Each -> targets ()
 
   let resurrect actorIdOpt amount g =
     trial {

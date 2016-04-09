@@ -144,10 +144,12 @@ module ScopeForm =
 
 module Scope =
   let form        (scope: Scope) = scope.Form
+  let aggregate   (scope: Scope) = scope.Aggregate
 
   let each form =
     {
       Form        = form
+      Aggregate   = Each
     }
 
 module KEffect =

@@ -27,7 +27,10 @@ module Dump =
     form |> ScopeForm.name
 
   let dumpScope scope =
-    (scope |> Scope.form |> dumpScopeForm) + "(それぞれ)"
+    let form = scope |> Scope.form |> dumpScopeForm
+    in
+      match scope |> Scope.aggregate with
+      | Each -> form + "(それぞれ)"
 
   let dumpCond =
     function
