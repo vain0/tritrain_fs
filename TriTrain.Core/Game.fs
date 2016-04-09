@@ -196,6 +196,13 @@ module Game =
           g |> giveKEffect targetId keff
     in g
 
+  let findTargets source scope g =
+    scope |> Scope.form |> ScopeForm.placeSet source
+    |> Set.toList
+    |> List.choose (fun (plId, vx) ->
+        g |> board plId |> Map.tryFind vx
+        )
+
   let resurrect actorIdOpt amount g =
     trial {
       let! actorId  = actorIdOpt |> failIfNone ()
@@ -273,18 +280,12 @@ module Game =
         |> List.fold (fun g plId -> g |> rotateBoard plId) g
 
     | OEffectToUnits (typ, scope) ->
-        let targets =
-          scope |> Scope.form |> ScopeForm.placeSet source
-          |> Set.toList
-          |> List.choose (fun (plId, vx) ->
-              g |> board plId |> Map.tryFind vx
-              )
-        let g =
-          targets |> List.fold (fun g cardId ->
-              g |> procOEffectToUnit actorIdOpt cardId typ
-              ) g
-        in g
-
+        g
+        |> findTargets source scope
+        |> List.fold (fun g cardId ->
+            g |> procOEffectToUnit actorIdOpt cardId typ
+            ) g
+        
   let rec procOEffectList actorIdOpt source oeffs g =
     oeffs
     |> List.fold (fun g oeff ->
