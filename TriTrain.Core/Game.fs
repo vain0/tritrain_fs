@@ -113,6 +113,7 @@ module Game =
     let board = g |> board plId
     let () =
       assert (board |> Map.containsKey vx |> not)
+      assert (g |> card cardId |> Card.isAlive)
     in
       g
       |> updateBoard plId
@@ -209,6 +210,7 @@ module Game =
       let  rate     = Amount.resolve (Some actor) amount |> flip (/) 100.0
       let  hp       = tar |> Card.maxHp |> float |> (*) rate |> int
       let  tar'     = tar |> Card.setHp hp
+      if hp <= 0 then return! fail ()
       return
         g
         |> updateCard tar'
