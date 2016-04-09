@@ -23,8 +23,11 @@ module Dump =
     | Oppo -> "敵陣"
     | Both -> "両陣"
 
-  let dumpScope (name, _) =
-    name
+  let dumpScopeForm form =
+    form |> ScopeForm.name
+
+  let dumpScope scope =
+    (scope |> Scope.form |> dumpScopeForm) + "(それぞれ)"
 
   let dumpCond =
     function
@@ -61,7 +64,7 @@ module Dump =
           (dumpScope scope)
           (dumpAmount amount)
     | Death amount ->
-        sprintf "%sを(それぞれ)%s%%の確率で即死させる。"
+        sprintf "%sを%s%%の確率で即死させる。"
           (dumpScope scope)
           (dumpAmount amount)
     | Give keff ->
@@ -75,8 +78,8 @@ module Dump =
         dumpOEffectToUnit (typ, scope)
     | Resurrect amount ->
         "味方1体を最大HPの" + dumpAmount amount + "持った状態で蘇生する。"
-    | Swap scope ->
-        dumpScope scope + "を交代する。"
+    | Swap form ->
+        dumpScopeForm form + "を交代する。"
     | Rotate scopeSide ->
         dumpScopeSide scopeSide + "の回転を起こす。"
     | GenToken cards ->

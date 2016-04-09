@@ -263,8 +263,8 @@ module Game =
     | Resurrect amount ->
         g |> resurrect actorIdOpt amount
 
-    | Swap (_, scope) ->
-        match scope |> Scope.placeSet source |> Set.toList with
+    | Swap form ->
+        match form |> ScopeForm.placeSet source |> Set.toList with
         | [r1; r2] -> g |> swapCards r1 r2
         | _ -> g
 
@@ -272,9 +272,9 @@ module Game =
         ScopeSide.sides (source |> fst) scopeSide
         |> List.fold (fun g plId -> g |> rotateBoard plId) g
 
-    | OEffectToUnits (typ, (_, scope)) ->
+    | OEffectToUnits (typ, scope) ->
         let targets =
-          scope |> Scope.placeSet source
+          scope |> Scope.form |> ScopeForm.placeSet source
           |> Set.toList
           |> List.choose (fun (plId, vx) ->
               g |> board plId |> Map.tryFind vx

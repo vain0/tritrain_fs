@@ -74,12 +74,13 @@ module ScopeSide =
     | Oppo -> [plId |> PlayerId.inverse]
     | Both -> PlayerId.all
 
-module Scope =
-  let name ((name, _): NamedScope) = name
+module ScopeForm =
+  let name        ((name, _): ScopeForm) = name
+  let typ         ((_, typ): ScopeForm) = typ
 
-  let rec placeSet ((plId, vx) as source) (scope: Scope): Set<Place> =
-    match scope with
-    | AbsScope (homeSet, oppoSet) ->
+  let rec placeSetImpl ((plId, vx) as source) formType =
+    match formType with
+    | AbsForm (homeSet, oppoSet) ->
         [
           for p in homeSet -> (plId, p)
           for p in oppoSet -> (plId |> PlayerId.inverse, p)
@@ -133,10 +134,21 @@ module Scope =
     | FrontEnemy ->
         Set.singleton ((PlayerId.inverse plId), vx)
 
-    | UnionScope scopes ->
-        scopes
-        |> List.map (placeSet source)
+    | UnionForm forms ->
+        forms
+        |> List.map (placeSetImpl source)
         |> Set.unionMany
+
+  let placeSet source (form: ScopeForm): Set<Place> =
+    placeSetImpl source (form |> typ)
+
+module Scope =
+  let form        (scope: Scope) = scope.Form
+
+  let each form =
+    {
+      Form        = form
+    }
 
 module KEffect =
   let typ         (keff: KEffect) = keff.Type
