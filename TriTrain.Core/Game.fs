@@ -68,7 +68,9 @@ module Game =
     g |> tap (fun g -> (g |> events).Next(ev, g))
 
   let endIn r g =
-    (g |> happen (GameEnd r), r)
+    let g     = g |> happen (GameEnd r)
+    let ()    = (g |> events).Completed()
+    in (g, r)
 
   let trigger trig g =
     { g with Triggered = trig :: (g |> triggered) }
