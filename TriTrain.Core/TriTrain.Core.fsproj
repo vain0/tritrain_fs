@@ -59,6 +59,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="Funcs.fs" />
     <Compile Include="Game.fs" />
+    <Compile Include="Observers.fs" />
     <Compile Include="Preset.fs" />
     <Compile Include="Random.fs" />
     <Compile Include="Validate.fs" />
