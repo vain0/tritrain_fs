@@ -17,6 +17,16 @@ module Types =
     | Lft
     | Rgt
 
+  /// 変量
+  type VarType =
+    | One
+    | MaxHP  // unused
+    | AT
+    | AG
+
+  type Amount =
+    VarType * Rate
+
   type Row =
     /// forward row
     | FwdRow
@@ -60,16 +70,6 @@ module Types =
     {
       Form          : ScopeForm
     }
-
-  /// 変量
-  type VarType =
-    | One
-    | MaxHP  // unused
-    | AT
-    | AG
-
-  type Amount =
-    VarType * Rate
 
   type Duration =
     option<int>
