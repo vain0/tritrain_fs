@@ -6,6 +6,7 @@ NUGET
       FSharp.Configuration (>= 0.4.10)
       YamlDotNet (>= 3.8)
     Persimmon (1.0.2)
+    Persimmon.Console (1.0.2)
     Persimmon.Runner (1.0.2)
       Persimmon (>= 1.0.2)
     YamlDotNet (3.8)
