@@ -258,68 +258,28 @@ module CardSpec =
 module Card =
   let cardId      (card: Card) = card.CardId
   let spec        (card: Card) = card.Spec
-  let hp          (card: Card) = card.HP
+  let status      (card: Card) = card.Status
   let effects     (card: Card) = card.Effects
 
   let create (spec: CardSpec) (cardId: CardId): Card =
     {
       CardId        = cardId
       Spec          = spec
-      HP            = spec |> CardSpec.status |> Status.hp
+      Status        = spec |> CardSpec.status
       Effects       = []
     }
 
-  let owner =
-    cardId >> CardId.owner
+  let owner     = cardId >> CardId.owner
+  let name      = spec >> CardSpec.name
+  let elem      = spec >> CardSpec.elem
+  let abils     = spec >> CardSpec.abils
+  let maxHp     = spec >> CardSpec.status >> Status.hp
 
-  let name =
-    spec >> CardSpec.name
-
-  let elem =
-    spec >> CardSpec.elem
-
-  let abils =
-    spec >> CardSpec.abils
-
-  let maxHp =
-    spec >> CardSpec.status >> Status.hp
-
-  let isAlive card =
-    (card |> hp) > 0
-
-  let isDead =
-    isAlive >> not
-
-  let at card =
-    card
-    |> effects
-    |> List.map (fun keff ->
-        match keff |> KEffect.typ with
-        | ATInc (One, value) -> value
-        | _ -> 0.0
-        )
-    |> List.sum
-    |> (+) (card |> spec |> CardSpec.status |> Status.at |> float)
-    |> int
-
-  let ag card =
-    card
-    |> effects
-    |> List.map (fun keff ->
-        match keff |> KEffect.typ with
-        | AGInc (One, value) -> value
-        | _ -> 0.0
-        )
-    |> List.sum
-    |> (+) (card |> spec |> CardSpec.status |> Status.ag |> float)
-    |> int
-
-  let status card =
-    {
-      HP = card |> hp 
-      AT = card |> at
-      AG = card |> ag
-    }
+  let hp        = status >> Status.hp
+  let at        = status >> Status.at
+  let ag        = status >> Status.ag
+  let isAlive   = hp >> flip (>) 0 
+  let isDead    = isAlive >> not
 
   let isImmune card =
     card |> effects
@@ -331,7 +291,15 @@ module Card =
 
   let setHp hp card =
     let hp = hp |> max 0 |> min (card |> maxHp) 
-    in { card with HP = hp }
+    in { card with Status = { (card |> status) with HP = hp } }
+    
+  let incAt amount card =
+    let at' = card |> at |> (+) amount
+    in { card with Status = { (card |> status) with AT = at' } }
+
+  let incAg amount card =
+    let ag' = card |> ag |> (+) amount
+    in { card with Status = { (card |> status) with AG = ag' } }
 
   /// 再生効果を適用する
   let regenerate card =

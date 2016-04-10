@@ -158,7 +158,7 @@ module Types =
     {
       CardId        : CardId
       Spec          : CardSpec
-      HP            : int
+      Status        : Status
       Effects       : list<KEffect>
     }
 
