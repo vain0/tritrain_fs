@@ -144,6 +144,7 @@ module Ability =
     [
       ("躍神"         , (WhenBoT, give (atInc (AT, 0.10) 3) self))
       ("不傷"         , (WhenEtB, give (KEffect.create Immune 1) self))
+      ("恒常"         , (WhenEtB, give (KEffect.create Stable 1) self))
       ("神速"         , (WhenEtB, give (agInc (One, 30.0) 1) self))
     ]
 
