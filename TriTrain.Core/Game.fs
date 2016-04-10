@@ -232,9 +232,12 @@ module Game =
           let g =
             if Random.roll prob then
               let target  = g |> card targetId
-              let amount  = target |> Card.hp |> (~-)
-              let g       = g |> incCardHp targetId amount
-              in g
+              if target |> Card.isHaunted then
+                g |> happen (CardNullifyEffect (targetId, oeffType))
+              else
+                let amount  = target |> Card.hp |> (~-)
+                let g       = g |> incCardHp targetId amount
+                in g
             else g
           in g
       | Give keff ->
