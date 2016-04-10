@@ -105,6 +105,12 @@ module Skill =
           (give (atInc (AT, 0.05) 2) homeEach)
           (give (agInc (AT, 0.05) 2) homeEach) )
 
+      ( "照天"
+      , [ yield! give (agInc (AT, 0.30) 3) homeEach
+          yield! give (atInc (AT, 0.30) 3) homeEach
+          yield! give (KEffect.create Stable 2) homeEach
+        ] )
+
       ("奇跡"
       , pair
           [Resurrect (AT, 0.30)]
@@ -144,6 +150,7 @@ module Ability =
     [
       ("躍神"         , (WhenBoT, give (atInc (AT, 0.10) 3) self))
       ("不傷"         , (WhenEtB, give (KEffect.create Immune 1) self))
+      ("恒常"         , (WhenEtB, give (KEffect.create Stable 1) self))
       ("神速"         , (WhenEtB, give (agInc (One, 30.0) 1) self))
     ]
 
