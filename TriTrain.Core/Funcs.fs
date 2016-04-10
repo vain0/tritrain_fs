@@ -321,6 +321,10 @@ module Card =
       AG = card |> curAg
     }
 
+  let isImmune card =
+    card |> effects
+    |> List.exists (function | { Type = Immune } -> true | _ -> false)
+
   let setHp hp card =
     let hp = hp |> max 0 |> min (card |> maxHp) 
     in { card with CurHP = hp }
@@ -383,6 +387,7 @@ module Amount =
         { keff with Type = AGInc (One, amount |> resolve actorOpt) }
     | Regenerate amount ->
         { keff with Type = Regenerate (One, amount |> resolve actorOpt) }
+    | Immune -> keff
 
   /// 単発的効果の変量を固定する。
   /// 事後: 含まれる Amount はすべて (One, _) である。
