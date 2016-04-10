@@ -92,7 +92,7 @@ module Dump =
     | OEffectToUnits (typ, scope) ->
         dumpOEffectToUnit (typ, scope)
     | Resurrect amount ->
-        "味方1体を最大HPの" + dumpAmount amount + "持った状態で蘇生する。"
+        "味方1体を最大HPの" + dumpAmount amount + "%%持った状態で蘇生する。"
     | Swap form ->
         dumpScopeForm form + "を交代する。"
     | Rotate scopeSide ->
