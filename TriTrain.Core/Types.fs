@@ -198,6 +198,7 @@ module Types =
   type Phase =
     | SummonPhase
     | UpkeepPhase
+    | WindPhase     of blows: bool
     | ActionPhase   of actedCards: Set<CardId>
     | RotatePhase
     | PassPhase
@@ -210,7 +211,7 @@ module Types =
     | GameBegin
     | GameEnd             of GameResult
     | TurnBegin
-    | WindBlow
+    | PhaseBegin          of Phase
     | CardEnter           of CardId * Place
     | CardAbilityTrigger  of Triggered
     | SolveTriggered      of Triggered

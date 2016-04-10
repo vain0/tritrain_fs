@@ -74,9 +74,11 @@ module Broadcaster =
         /// Wait input
         Console.ReadLine() |> ignore
 
-    | WindBlow ->
+    | PhaseBegin (WindPhase true) ->
         printfn "--------"
         printfn "The wind blows."
+
+    | PhaseBegin _ -> ()
 
     | CardEnter (cardId, _) ->
         printCardName g' cardId

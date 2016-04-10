@@ -423,11 +423,8 @@ module Game =
         (fun (KeyValue (_, cardId)) -> triggerAbils WhenBoT cardId)
 
   /// 奇数ターンなら、後攻側の各カードが自己加速する
-  let procWindBlowPhase g =
-    if g |> turn |> flip (%) 2 |> (=) 0
-    then g
-    else
-      let g         = g |> happen WindBlow
+  let procWindPhase cond g =
+    if cond then
       let keff      = KEffect.create (AGInc (AG, 0.10)) 1
       let oeff      = OEffectToUnits (Give keff, Preset.Scope.self)
       let targets   =
@@ -436,6 +433,7 @@ module Game =
       in
         g |> fold' targets
             (fun (KeyValue (source, actorId)) -> procOEffect oeff (actorId |> Some) source)
+    else g
 
   /// カードにかかっている継続的効果の経過ターン数を更新する
   let updateDuration cardId g =
@@ -485,7 +483,11 @@ module Game =
     | UpkeepPhase ->
         g
         |> triggerBoTAbils
-        |> procWindBlowPhase
+        |> procPhase (WindPhase (g |> turn |> flip (%) 2 |> (=) 1))
+
+    | WindPhase blows ->
+        g
+        |> procWindPhase blows
         |> procPhase (ActionPhase Set.empty)
 
     | ActionPhase actedCards ->
