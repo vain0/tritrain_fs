@@ -173,17 +173,11 @@ module Game =
         g |> modifyCard (Card.incAg (value |> int)) targetId
     | ATInc _
     | AGInc _ -> failwith "never"
-    | Haunted ->
-        let target    = g |> card targetId
-        let effs'     =
-          target |> Card.effects
-          |> fold' [Immune; Damned]
-              (fun keff effs -> (KEffect.create keff MaxTurns) :: effs)
-        in g |> updateCard { target with Effects = effs' }
     | Regenerate _
     | Immune
     | Stable
     | Damned
+    | Haunted
       -> g
 
   /// 継続的効果が消失するときの処理
@@ -238,9 +232,12 @@ module Game =
           let g =
             if Random.roll prob then
               let target  = g |> card targetId
-              let amount  = target |> Card.hp |> (~-)
-              let g       = g |> incCardHp targetId amount
-              in g
+              if target |> Card.isHaunted then
+                g |> happen (CardNullifyEffect (targetId, oeffType))
+              else
+                let amount  = target |> Card.hp |> (~-)
+                let g       = g |> incCardHp targetId amount
+                in g
             else g
           in g
       | Give keff ->

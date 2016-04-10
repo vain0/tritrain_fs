@@ -283,7 +283,7 @@ module Card =
 
   let isImmune card =
     card |> effects
-    |> List.exists (function | { Type = Immune } -> true | _ -> false)
+    |> List.exists (function | { Type = (Immune | Haunted) } -> true | _ -> false)
 
   let isStable card =
     card |> effects
@@ -293,7 +293,11 @@ module Card =
   let isDamned card =
     card
     |> effects
-    |> List.exists (function | { Type = Damned } -> true | _ -> false)
+    |> List.exists (function | { Type = (Damned | Haunted) } -> true | _ -> false)
+
+  let isHaunted card =
+    card |> effects
+    |> List.exists (function | { Type = Haunted } -> true | _ -> false)
 
   let setHp hp card =
     let hp = hp |> max 0 |> min (card |> maxHp) 
