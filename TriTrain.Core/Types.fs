@@ -79,7 +79,7 @@ module Types =
     }
 
   type Duration =
-    option<int>
+    int
 
   /// クリーチャーに作用する継続的効果
   type KEffectType =

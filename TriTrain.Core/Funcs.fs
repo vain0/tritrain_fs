@@ -183,7 +183,7 @@ module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration
 
-  let create (typ: KEffectType) (duration: option<int>): KEffect =
+  let create (typ: KEffectType) (duration: int): KEffect =
     {
       Type        = typ
       Duration    = duration

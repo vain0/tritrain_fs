@@ -373,7 +373,7 @@ module Game =
           | PlLft -> 50.0
           | PlRgt -> 60.0
         in
-          KEffect.create (Regenerate (One, rate)) None
+          KEffect.create (Regenerate (One, rate)) 10
       in
         g
         |> cardMap
@@ -396,7 +396,7 @@ module Game =
     if g |> turn |> flip (%) 2 |> (=) 0
     then g
     else
-      let keff = KEffect.create (AGInc (AG, 0.10)) (Some 1)
+      let keff = KEffect.create (AGInc (AG, 0.10)) 1
       let oeff = OEffectToUnits (Give keff, Preset.Scope.self)
       in
         g
@@ -414,12 +414,9 @@ module Game =
       card
       |> Card.effects
       |> List.map (fun keff ->
-          match keff.Duration with
-          | None -> (Some keff, None)
-          | Some n ->
-              if n <= 1
-              then (None, Some keff)
-              else ({ keff with Duration = Some (n - 1) } |> Some, None)
+          if (keff |> KEffect.duration) <= 1
+          then (None, Some keff)
+          else ({ keff with Duration = (keff |> KEffect.duration) - 1 } |> Some, None)
           )
       |> List.unzip
     let card' = { card with Effects = effects' |> List.choose id }

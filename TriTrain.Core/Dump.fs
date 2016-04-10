@@ -54,9 +54,7 @@ module Dump =
 
   let dumpKEffect keff =
     let duration =
-      match keff |> KEffect.duration with
-      | Some n -> sprintf "(%dT)" n
-      | None -> "(永続)"
+      sprintf "(%dT)" (keff |> KEffect.duration)
     let typ =
       match keff |> KEffect.typ with
       | ATInc amount ->

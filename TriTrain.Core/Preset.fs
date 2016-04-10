@@ -34,13 +34,12 @@ module Scope =
   let oppoMaxAT     = Scope.maxBy AT ScopeForm.oppoAll
 
 module KEffect =
-  let createWithDuration typ duration =
-    KEffect.create typ (Some duration)
+  open KEffect
 
-  let atInc amount = createWithDuration (ATInc amount)
-  let agInc amount = createWithDuration (AGInc amount)
+  let atInc amount = create (ATInc amount)
+  let agInc amount = create (AGInc amount)
 
-  let regenerate rate = createWithDuration (Regenerate (AT, rate))
+  let regenerate rate = create (Regenerate (AT, rate))
 
 module Skill =
   open Scope
