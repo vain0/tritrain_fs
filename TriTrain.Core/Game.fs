@@ -66,6 +66,9 @@ module Game =
       g |> cardMap |> Map.add (card' |> Card.cardId) card'
     in { g with CardMap = cardMap' }
 
+  let modifyCard f cardId g =
+    g |> updateCard (g |> card cardId |> f)
+
   let happen ev g =
     g |> tap (fun g -> (g |> events).Next(ev, g))
 
@@ -140,7 +143,7 @@ module Game =
           g
           |> updateDeck plId
               (g |> deck plId |> flip List.append [cardId])
-          |> happen (CardRegenerate (cardId, card' |> Card.curHp))
+          |> happen (CardRegenerate (cardId, card' |> Card.hp))
         
         else // 復活せず、墓地へ行く
           g
@@ -150,7 +153,7 @@ module Game =
 
   let incCardHp targetId amount g =
     let target    = g |> card targetId
-    let hp'       = target |> Card.curHp |> (+) amount
+    let hp'       = target |> Card.hp |> (+) amount
     let g         = g |> updateCard (target |> Card.setHp hp')
     let g         = g |> happen (CardHpInc (targetId, amount))
     let g =
@@ -158,6 +161,34 @@ module Game =
       then g |> dieCard targetId
       else g
     in g
+
+  /// 継続的効果を取得するときの処理
+  let onGainKEffect targetId keff g =
+    match keff |> KEffect.typ with
+    | ATInc (One, value) ->
+        g |> modifyCard (Card.incAt (value |> int)) targetId
+    | AGInc (One, value) ->
+        g |> modifyCard (Card.incAg (value |> int)) targetId
+    | ATInc _
+    | AGInc _ -> failwith "never"
+    | Regenerate _
+    | Immune
+    | Stable
+      -> g
+
+  /// 継続的効果が消失するときの処理
+  let onLoseKEffect targetId keff g =
+    match keff |> KEffect.typ with
+    | ATInc (One, value) ->
+        g |> modifyCard (Card.incAt (value |> int |> (~-))) targetId
+    | AGInc (One, value) ->
+        g |> modifyCard (Card.incAg (value |> int |> (~-))) targetId
+    | ATInc _
+    | AGInc _ -> failwith "never"
+    | Regenerate _
+    | Immune
+    | Stable
+      -> g
 
   let giveKEffect targetId keff g =
     let target    = g |> card targetId
@@ -167,6 +198,7 @@ module Game =
       let effs'     = keff :: (target |> Card.effects)
       let g         = g |> updateCard { target with Effects = effs' }
       let g         = g |> happen (CardGainEffect (targetId, keff))
+      let g         = g |> onGainKEffect targetId keff
       in g
 
   let rec procOEffectToUnit oeffType actorIdOpt targetId g =
@@ -193,7 +225,7 @@ module Game =
           let g =
             if Random.roll prob then
               let target  = g |> card targetId
-              let amount  = target |> Card.curHp |> (~-)
+              let amount  = target |> Card.hp |> (~-)
               let g       = g |> incCardHp targetId amount
               in g
             else g
@@ -323,7 +355,7 @@ module Game =
     |> List.choose (fun ((_, vx), cardId) ->
         if actedCards |> Set.contains cardId
         then None
-        else (g |> card cardId |> Card.curAg, (vx, cardId)) |> Some
+        else (g |> card cardId |> Card.ag, (vx, cardId)) |> Some
         )
     |> List.tryMaxBy fst
     |> Option.map snd
@@ -420,10 +452,14 @@ module Game =
     let card' = { card with Effects = effects' |> List.choose id }
     in
       g
+      |> updateCard card'
       |> fold'
           (endEffects' |> List.choose id)
-          (fun keff -> happen (CardLoseEffect (cardId, keff)))
-      |> updateCard card'
+          (fun keff g ->
+              g
+              |> happen (CardLoseEffect (cardId, keff))
+              |> onLoseKEffect cardId keff
+              )
   
   let updateDurationAll g =
     g |> fold'
