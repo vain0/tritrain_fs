@@ -14,6 +14,9 @@ module Misc =
   let isInInterval l r x: bool =
     l <= x && x < r
 
+  let fold' (xs: #seq<'x>) (f: 'x -> 's -> 's) (s: 's): 's =
+    xs |> Seq.fold (flip f) s 
+
   type T7<'t> = 't * 't * 't * 't * 't * 't * 't
 
   type Rate = float

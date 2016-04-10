@@ -103,9 +103,9 @@ module Game =
       , g |> card cardId |> Card.abils |> Map.tryFind cond
       ) with
     | (Some place, Some abils) ->
-        abils |> BatchedQueue.toList |> List.fold (fun g abil ->
-            g |> trigger (cardId, place, abil)
-            ) g
+        g |> fold'
+            (abils |> BatchedQueue.toList)
+            (fun abil -> trigger (cardId, place, abil))
     | _ -> g
 
   /// カードを盤面に出す
@@ -169,7 +169,7 @@ module Game =
       let g         = g |> happen (CardGainEffect (targetId, keff))
       in g
 
-  let rec procOEffectToUnit actorIdOpt targetId oeffType g =
+  let rec procOEffectToUnit oeffType actorIdOpt targetId g =
     let target    = g |> card targetId
     let actorOpt  = actorIdOpt |> Option.map (fun actorId -> g |> card actorId)
     let oeffType  = Amount.resolveOEffectToUnit actorOpt target oeffType
@@ -248,15 +248,14 @@ module Game =
   /// moves: (移動するカードのID, 元の位置, 後の位置) の列
   /// 移動後の盤面の整合性は、利用側が担保すること。
   let moveCards (moves: list<CardId * Place * Place>) g =
-    let g =
-      moves |> List.fold (fun g (cardId, (plId, vx), _) ->
-          g |> updateBoard plId  (g |> board plId  |> Map.remove vx)
-          ) g
-    let g =
-      moves |> List.fold (fun g (cardId, _, (plId', vx')) ->
-          g |> updateBoard plId' (g |> board plId' |> Map.add vx' cardId)
-          ) g
-    in g |> happen (CardMove moves)
+    g
+    |> fold' moves (fun (cardId, (plId, vx), _) ->
+        updateBoard plId  (g |> board plId  |> Map.remove vx)
+        )
+    |> fold' moves (fun (cardId, _, (plId', vx')) ->
+        updateBoard plId' (g |> board plId' |> Map.add vx' cardId)
+        )
+    |> happen (CardMove moves)
 
   let swapCards r1 r2 g =
     let placeMap = g |> placeMap
@@ -282,7 +281,7 @@ module Game =
           )
     in g |> moveCards moves
 
-  let rec procOEffect (actorIdOpt: option<CardId>) (source: Place) oeff g =
+  let rec procOEffect oeff (actorIdOpt: option<CardId>) (source: Place) g =
     match oeff with
     | GenToken cardSpecs ->
         g // TODO: トークン生成
@@ -296,26 +295,25 @@ module Game =
         | _ -> g
 
     | Rotate scopeSide ->
-        ScopeSide.sides (source |> fst) scopeSide
-        |> List.fold (fun g plId -> g |> rotateBoard plId) g
+        g |> fold'
+            (ScopeSide.sides (source |> fst) scopeSide)
+            rotateBoard
 
     | OEffectToUnits (typ, scope) ->
-        g
-        |> findTargets source scope
-        |> List.fold (fun g cardId ->
-            g |> procOEffectToUnit actorIdOpt cardId typ
-            ) g
-        
+        g |> fold'
+            (g |> findTargets source scope)
+            (procOEffectToUnit typ actorIdOpt)
+
   let rec procOEffectList actorIdOpt source oeffs g =
-    oeffs
-    |> List.fold (fun g oeff ->
-        let source =  // actor の最新の位置に更新する
-          actorIdOpt
-          |> Option.bind
-              (fun actorId -> g |> searchBoardFor actorId)
-          |> Option.getOr source
-        in g |> procOEffect actorIdOpt source oeff
-        ) g
+    let loop oeff g =
+      let source =  // actor の最新の位置に更新する
+        actorIdOpt
+        |> Option.bind
+            (fun actorId -> g |> searchBoardFor actorId)
+        |> Option.getOr source
+      in g |> procOEffect oeff actorIdOpt source
+    in
+      g |> fold' oeffs loop
 
   /// 未行動な最速カード
   let tryFindFastest actedCards g: option<Vertex * CardId> =
@@ -365,10 +363,9 @@ module Game =
         |> summon cardId (plId, vx)
 
   let procSummonPhase plId g =
-    g
-    |> board plId
-    |> Board.emptyVertexSet
-    |> Set.fold (fun g vx -> g |> summonFromTop (plId, vx)) g
+    g |> fold'
+        (g |> board plId |> Board.emptyVertexSet)
+        (fun vx -> summonFromTop (plId, vx))
 
   /// 全体に再生効果をかける
   let procRegenerationPhase g =
@@ -380,38 +377,33 @@ module Game =
           | PlRgt -> 60.0
         in
           KEffect.create (Regenerate (One, rate)) 10
-      in
-        g
-        |> cardMap
+      let targets =
+        g |> cardMap
         |> Map.filter (fun _ card -> card |> Card.owner = plId)
-        |> Map.fold (fun g cardId _ ->
-            g |> procOEffectToUnit None cardId (Give keff)
-            ) g
-    let g =
-      PlayerId.all
-      |> List.fold (fun g plId -> g |> body plId) g
-    in g
+      in
+        g |> fold' targets
+            (fun (KeyValue (cardId, _)) -> procOEffectToUnit (Give keff) None cardId)
+    in
+      g |> fold' (PlayerId.all) body
 
   let triggerBoTAbils g =
-    g |> placeMap |> Map.fold (fun g vx cardId ->
-        g |> triggerAbils WhenBoT cardId
-        ) g
+    g |> fold' (g |> placeMap)
+        (fun (KeyValue (_, cardId)) -> triggerAbils WhenBoT cardId)
 
   /// 奇数ターンなら、後攻側の各カードが自己加速する
   let procWindBlowPhase g =
     if g |> turn |> flip (%) 2 |> (=) 0
     then g
     else
-      let keff = KEffect.create (AGInc (AG, 0.10)) 1
-      let oeff = OEffectToUnits (Give keff, Preset.Scope.self)
-      in
-        g
-        |> happen WindBlow
-        |> placeMap
+      let g         = g |> happen WindBlow
+      let keff      = KEffect.create (AGInc (AG, 0.10)) 1
+      let oeff      = OEffectToUnits (Give keff, Preset.Scope.self)
+      let targets   =
+        g |> placeMap
         |> Map.filter (fun _ cardId -> cardId |> CardId.owner = PlRgt)
-        |> Map.fold (fun g source actorId ->
-            g |> procOEffect (actorId |> Some) source oeff
-            ) g
+      in
+        g |> fold' targets
+            (fun (KeyValue (source, actorId)) -> procOEffect oeff (actorId |> Some) source)
 
   /// カードにかかっている継続的効果の経過ターン数を更新する
   let updateDuration cardId g =
@@ -426,29 +418,25 @@ module Game =
           )
       |> List.unzip
     let card' = { card with Effects = effects' |> List.choose id }
-    let g =
-      endEffects'
-      |> List.choose id
-      |> List.fold (fun g keff ->
-          g |> happen (CardLoseEffect (cardId, keff))
-          ) g
-    in g |> updateCard card'
+    in
+      g
+      |> fold'
+          (endEffects' |> List.choose id)
+          (fun keff -> happen (CardLoseEffect (cardId, keff)))
+      |> updateCard card'
   
   let updateDurationAll g =
-    g
-    |> cardIdsOnBoard
-    |> Set.fold (fun g cardId ->
-        g |> updateDuration cardId
-        ) g
+    g |> fold'
+        (g |> cardIdsOnBoard)
+        updateDuration
 
   let rec procPhaseImpl ph g =
     match ph with
     | SummonPhase ->
         let g =
-          g |> happen TurnBegin
-        let g =
-          PlayerId.all
-          |> List.fold (fun g plId -> g |> procSummonPhase plId) g
+          g
+          |> happen TurnBegin
+          |> fold' (PlayerId.all) procSummonPhase
         let isLost plId =
           g |> board plId |> Map.isEmpty
         in
@@ -474,8 +462,8 @@ module Game =
             g |> procPhase RotatePhase
 
     | RotatePhase ->
-        PlayerId.all
-        |> List.fold (fun g plId -> g |> rotateBoard plId) g
+        g
+        |> fold' (PlayerId.all) rotateBoard
         |> procPhase PassPhase
 
     | PassPhase ->
