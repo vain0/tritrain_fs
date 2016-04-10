@@ -87,6 +87,7 @@ module Types =
     | AGInc         of Amount
     | Regenerate    of Amount
     | Immune
+    | Stable
 
   /// 継続的効果 (Continuous Effect)
   type KEffect =

@@ -68,6 +68,8 @@ module Dump =
             (dumpAmount amount)
       | Immune ->
           "ダメージを受けない効果"
+      | Stable ->
+          "継続的効果を受けない効果"
     in typ + duration
 
   let dumpOEffectToUnit (typ, scope) =

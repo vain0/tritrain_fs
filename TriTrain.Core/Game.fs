@@ -161,10 +161,13 @@ module Game =
 
   let giveKEffect targetId keff g =
     let target    = g |> card targetId
-    let effs'     = keff :: (target |> Card.effects)
-    let g         = g |> updateCard { target with Effects = effs' }
-    let g         = g |> happen (CardGainEffect (targetId, keff))
-    in g
+    if target |> Card.isStable then
+      g |> happen (CardNullifyEffect (targetId, Give keff))
+    else
+      let effs'     = keff :: (target |> Card.effects)
+      let g         = g |> updateCard { target with Effects = effs' }
+      let g         = g |> happen (CardGainEffect (targetId, keff))
+      in g
 
   let rec procOEffectToUnit actorIdOpt targetId oeffType g =
     let target    = g |> card targetId
