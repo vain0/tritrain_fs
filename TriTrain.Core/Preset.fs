@@ -105,6 +105,12 @@ module Skill =
           (give (atInc (AT, 0.05) 2) homeEach)
           (give (agInc (AT, 0.05) 2) homeEach) )
 
+      ( "照天"
+      , [ yield! give (agInc (AT, 0.30) 3) homeEach
+          yield! give (atInc (AT, 0.30) 3) homeEach
+          yield! give (KEffect.create Stable 2) homeEach
+        ] )
+
       ("奇跡"
       , pair
           [Resurrect (AT, 0.30)]
