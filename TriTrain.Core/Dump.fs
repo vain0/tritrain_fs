@@ -66,6 +66,8 @@ module Dump =
       | Regenerate amount ->
           sprintf "死亡後に最大HPの%s%%で再生する効果"
             (dumpAmount amount)
+      | Immune ->
+          "ダメージを受けない効果"
     in typ + duration
 
   let dumpOEffectToUnit (typ, scope) =

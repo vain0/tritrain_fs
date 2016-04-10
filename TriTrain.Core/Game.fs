@@ -173,13 +173,16 @@ module Game =
     let g =
       match oeffType with
       | Damage amount ->
-          let coeffByElem =
-            match actorOpt with
-            | Some actor ->
-                Elem.coeff (actor |> Card.elem) (target |> Card.elem)
-            | None -> 1.0
-          let amount = amount |> snd |> (*) coeffByElem |> int |> max 0
-          in g |> incCardHp targetId (- amount)
+          if target |> Card.isImmune then
+            g |> happen (CardNullifyEffect (targetId, oeffType))
+          else
+            let coeffByElem =
+              match actorOpt with
+              | Some actor ->
+                  Elem.coeff (actor |> Card.elem) (target |> Card.elem)
+              | None -> 1.0
+            let amount = amount |> snd |> (*) coeffByElem |> int |> max 0
+            in g |> incCardHp targetId (- amount)
       | Heal amount ->
           g |> incCardHp targetId (amount |> snd |> int |> max 0)
       | Death  amount ->

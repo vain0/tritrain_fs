@@ -99,6 +99,10 @@ module Broadcaster =
         printfn "'s '%s' is solved."
           name
 
+    | CardNullifyEffect (cardId, _) ->
+        printCardName g' cardId
+        printfn " nullified an effect."
+
     | CardHpInc (cardId, amount) ->
         let curHp = Game.card cardId >> Card.curHp
         do

@@ -86,6 +86,7 @@ module Types =
     | ATInc         of Amount
     | AGInc         of Amount
     | Regenerate    of Amount
+    | Immune
 
   /// 継続的効果 (Continuous Effect)
   type KEffect =
@@ -213,6 +214,7 @@ module Types =
     | CardAbilityTrigger  of Triggered
     | SolveTriggered      of Triggered
     | CardBeginAction     of CardId * Skill
+    | CardNullifyEffect   of CardId * OEffectToUnitType
     | CardHpInc           of CardId * amount: int
     | CardRegenerate      of CardId * amount: int
     | CardDie             of CardId
