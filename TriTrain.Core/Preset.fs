@@ -152,7 +152,6 @@ module Ability =
       ("不傷"         , (WhenEtB, give (KEffect.create Immune 1) self))
       ("恒常"         , (WhenEtB, give (KEffect.create Stable 1) self))
       ("神速"         , (WhenEtB, give (agInc (One, 30.0) 1) self))
-      ("神盾"         , (WhenEtB, give (KEffect.create Invincible 1) self)) 
     ]
 
   let preset: Map<Name, Ability> =

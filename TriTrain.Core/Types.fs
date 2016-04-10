@@ -88,6 +88,7 @@ module Types =
     | Regenerate    of Amount
     | Immune
     | Stable
+    | Damned
 
   /// 継続的効果 (Continuous Effect)
   type KEffect =
@@ -219,6 +220,7 @@ module Types =
     | CardNullifyEffect   of CardId * OEffectToUnitType
     | CardHpInc           of CardId * amount: int
     | CardRegenerate      of CardId * amount: int
+    | CardIsExiled        of CardId
     | CardDie             of CardId
     | CardGainEffect      of CardId * KEffect
     | CardLoseEffect      of CardId * KEffect
