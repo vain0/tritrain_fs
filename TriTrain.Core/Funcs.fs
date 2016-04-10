@@ -289,6 +289,12 @@ module Card =
     card |> effects
     |> List.exists (function | { Type = Stable } -> true | _ -> false)
 
+  /// 地獄行きか？
+  let isDamned card =
+    card
+    |> effects
+    |> List.exists (function | { Type = Damned } -> true | _ -> false)
+
   let setHp hp card =
     let hp = hp |> max 0 |> min (card |> maxHp) 
     in { card with Status = { (card |> status) with HP = hp } }
@@ -360,7 +366,9 @@ module Amount =
     | Regenerate amount ->
         { keff with Type = Regenerate (One, amount |> resolve actorOpt) }
     | Immune
-    | Stable -> keff
+    | Stable
+    | Damned
+      -> keff
 
   /// 単発的効果の変量を固定する。
   /// 事後: 含まれる Amount はすべて (One, _) である。
