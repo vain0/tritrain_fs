@@ -30,6 +30,9 @@ module Scope =
   let oppoEach      = Scope.each ScopeForm.oppoAll
   let oppoRgt       = Scope.each ScopeForm.oppoRgt
 
+  let oppoMinHP     = Scope.minBy HP ScopeForm.oppoAll
+  let oppoMaxAT     = Scope.maxBy AT ScopeForm.oppoAll
+
 module KEffect =
   let createWithDuration typ duration =
     KEffect.create typ (Some duration)
@@ -67,6 +70,8 @@ module Skill =
       ("後列薙ぎ"     , attack 0.30 oppoBwdEach)
       ("右翼の狙撃"   , attack 0.60 oppoRgt)
       ("全体攻撃"     , attack 0.20 oppoEach)
+      ("大物狙い"     , attack 0.60 oppoMaxAT)
+      ("弱者狩り"     , attack 0.50 oppoMinHP)
 
       ("ザキ"         , death 0.30 oppoFwd)
       ("ザラキ"       , death 0.10 oppoEach)
