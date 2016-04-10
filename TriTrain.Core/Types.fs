@@ -17,6 +17,17 @@ module Types =
     | Lft
     | Rgt
 
+  /// 変量
+  type VarType =
+    | One
+    | MaxHP  // unused
+    | HP
+    | AT
+    | AG
+
+  type Amount =
+    VarType * Rate
+
   type Row =
     /// forward row
     | FwdRow
@@ -43,30 +54,29 @@ module Types =
     | Both
 
   /// 効果の影響範囲
-  type Scope =
-    | AbsScope      of home: Set<Vertex> * oppo: Set<Vertex>
+  type ScopeFormType =
+    | AbsForm       of home: Set<Vertex> * oppo: Set<Vertex>
     | FwdSide       of ScopeSide
     | BwdSide       of ScopeSide
     | LftSide       of ScopeSide
     | RgtSide       of ScopeSide
     | Self
     | FrontEnemy
-    | UnionScope    of list<Scope>
+    | UnionForm     of list<ScopeFormType>
 
-  type ScopeName = Name
+  type ScopeForm =
+    Name * ScopeFormType
 
-  type NamedScope =
-    ScopeName * Scope
+  /// Aggregation
+  type ScopeAggregate =
+    | Each
+    | MaxBy         of VarType * rev: bool
 
-  /// 変量
-  type VarType =
-    | One
-    | MaxHP  // unused
-    | AT
-    | AG
-
-  type Amount =
-    VarType * Rate
+  type Scope =
+    {
+      Form          : ScopeForm
+      Aggregate     : ScopeAggregate
+    }
 
   type Duration =
     option<int>
@@ -95,9 +105,9 @@ module Types =
   /// 単発的効果 (Oneshot Effect)
   type OEffect =
     | OEffectToUnits
-      of OEffectToUnitType * NamedScope
+      of OEffectToUnitType * Scope
     | Resurrect     of Amount
-    | Swap          of NamedScope
+    | Swap          of ScopeForm
     | Rotate        of ScopeSide
     | GenToken      of list<CardSpec>
 

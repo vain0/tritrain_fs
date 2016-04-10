@@ -10,12 +10,18 @@ module Dump =
     | FwdRow -> "前列"
     | BwdRow -> "後列"
 
+  let dumpVarType =
+    function
+    | MaxHP -> "最大HP"
+    | HP -> "HP"
+    | AT -> "AT"
+    | AG -> "AG"
+    | One -> "1"  // never
+
   let dumpAmount (var, rate) =
     match var with
-    | MaxHP -> "最大HP×" + string rate
-    | AT -> "AT×" + string rate
-    | AG -> "AG×" + string rate
     | One -> rate |> int |> string
+    | var -> dumpVarType var + "×" + string rate
 
   let dumpScopeSide =
     function
@@ -23,8 +29,19 @@ module Dump =
     | Oppo -> "敵陣"
     | Both -> "両陣"
 
-  let dumpScope (name, _) =
-    name
+  let dumpScopeForm form =
+    form |> ScopeForm.name
+
+  let dumpScope scope =
+    let form = scope |> Scope.form |> dumpScopeForm
+    in
+      match scope |> Scope.aggregate with
+      | Each -> form + "(それぞれ)"
+      | MaxBy (var, rev) ->
+          sprintf "%sで%sが%sのもの"
+            form
+            (dumpVarType var)
+            (if rev then "最小" else "最大")
 
   let dumpCond =
     function
@@ -61,7 +78,7 @@ module Dump =
           (dumpScope scope)
           (dumpAmount amount)
     | Death amount ->
-        sprintf "%sを(それぞれ)%s%%の確率で即死させる。"
+        sprintf "%sを%s%%の確率で即死させる。"
           (dumpScope scope)
           (dumpAmount amount)
     | Give keff ->
@@ -75,8 +92,8 @@ module Dump =
         dumpOEffectToUnit (typ, scope)
     | Resurrect amount ->
         "味方1体を最大HPの" + dumpAmount amount + "持った状態で蘇生する。"
-    | Swap scope ->
-        dumpScope scope + "を交代する。"
+    | Swap form ->
+        dumpScopeForm form + "を交代する。"
     | Rotate scopeSide ->
         dumpScopeSide scopeSide + "の回転を起こす。"
     | GenToken cards ->
