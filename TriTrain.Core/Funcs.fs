@@ -295,6 +295,11 @@ module Card =
     |> effects
     |> List.exists (function | { Type = Damned } -> true | _ -> false)
 
+  let isUndead card =
+    card
+    |> effects
+    |> List.exists (function | { Type = Undead } -> true | _ -> false)
+
   let setHp hp card =
     let hp = hp |> max 0 |> min (card |> maxHp) 
     in { card with Status = { (card |> status) with HP = hp } }
@@ -368,6 +373,7 @@ module Amount =
     | Immune
     | Stable
     | Damned
+    | Undead
       -> keff
 
   /// 単発的効果の変量を固定する。

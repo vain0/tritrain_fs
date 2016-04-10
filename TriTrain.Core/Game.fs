@@ -177,6 +177,7 @@ module Game =
     | Immune
     | Stable
     | Damned
+    | Undead
       -> g
 
   /// 継続的効果が消失するときの処理
@@ -192,6 +193,7 @@ module Game =
     | Immune
     | Stable
     | Damned
+    | Undead
       -> g
 
   let giveKEffect targetId keff g =
@@ -223,7 +225,10 @@ module Game =
             let amount = amount |> snd |> (*) coeffByElem |> int |> max 0
             in g |> incCardHp targetId (- amount)
       | Heal amount ->
-          g |> incCardHp targetId (amount |> snd |> int |> max 0)
+          if target |> Card.isUndead then
+            procOEffectToUnit (Damage amount) None targetId g
+          else
+            g |> incCardHp targetId (amount |> snd |> int |> max 0)
       | Death  amount ->
           let prob   = amount |> snd |> flip (/) 100.0
           let g =
