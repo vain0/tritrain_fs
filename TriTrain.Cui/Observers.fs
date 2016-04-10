@@ -118,6 +118,10 @@ module Broadcaster =
         printCardName g' cardId
         printfn " died and regenerated."
 
+    | CardIsExiled cardId ->
+        printCardName g' cardId
+        printfn " is exiled."
+
     | CardDie cardId ->
         printCardName g cardId  // 死亡する直前の状態を表示
         printfn " died."
