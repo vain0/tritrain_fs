@@ -368,6 +368,7 @@ module Amount =
     | Immune
     | Stable
     | Damned
+    | Haunted
       -> keff
 
   /// 単発的効果の変量を固定する。

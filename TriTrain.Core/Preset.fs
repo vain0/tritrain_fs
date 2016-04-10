@@ -117,6 +117,9 @@ module Skill =
       , pair
           [Resurrect (AT, 0.30)]
           (give (agInc (AT, -0.30) 2) homeEach) )
+
+      ( "憑霊"
+      , pair (sacrifice homeFwd) (give (KEffect.create Haunted 3) self) )
     ]
 
   let preset: Map<Name, Skill> =

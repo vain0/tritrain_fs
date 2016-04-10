@@ -72,6 +72,8 @@ module Dump =
           "継続的効果を受けない効果"
       | Damned ->
           "死亡後に追放される効果"
+      | Haunted ->
+          "憑霊効果"
     in typ + duration
 
   let dumpOEffectToUnit (typ, scope) =
