@@ -1,6 +1,7 @@
 source https://www.nuget.org/api/v2
 
 nuget Persimmon
+nuget Persimmon.Dried
 nuget Persimmon.Runner
 nuget Persimmon.Console
 nuget FsYaml
