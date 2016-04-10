@@ -258,14 +258,14 @@ module CardSpec =
 module Card =
   let cardId      (card: Card) = card.CardId
   let spec        (card: Card) = card.Spec
-  let curHp       (card: Card) = card.CurHP
+  let hp          (card: Card) = card.HP
   let effects     (card: Card) = card.Effects
 
   let create (spec: CardSpec) (cardId: CardId): Card =
     {
       CardId        = cardId
       Spec          = spec
-      CurHP         = spec |> CardSpec.status |> Status.hp
+      HP            = spec |> CardSpec.status |> Status.hp
       Effects       = []
     }
 
@@ -285,12 +285,12 @@ module Card =
     spec >> CardSpec.status >> Status.hp
 
   let isAlive card =
-    curHp card > 0
+    (card |> hp) > 0
 
   let isDead =
     isAlive >> not
 
-  let curAt card =
+  let at card =
     card
     |> effects
     |> List.map (fun keff ->
@@ -302,7 +302,7 @@ module Card =
     |> (+) (card |> spec |> CardSpec.status |> Status.at |> float)
     |> int
 
-  let curAg card =
+  let ag card =
     card
     |> effects
     |> List.map (fun keff ->
@@ -314,11 +314,11 @@ module Card =
     |> (+) (card |> spec |> CardSpec.status |> Status.ag |> float)
     |> int
 
-  let curStatus card =
+  let status card =
     {
-      HP = card |> curHp 
-      AT = card |> curAt
-      AG = card |> curAg
+      HP = card |> hp 
+      AT = card |> at
+      AG = card |> ag
     }
 
   let isImmune card =
@@ -331,7 +331,7 @@ module Card =
 
   let setHp hp card =
     let hp = hp |> max 0 |> min (card |> maxHp) 
-    in { card with CurHP = hp }
+    in { card with HP = hp }
 
   /// 再生効果を適用する
   let regenerate card =
@@ -369,15 +369,15 @@ module Amount =
           | None -> 0.0
       | HP ->
           match actor with
-          | Some actor -> actor |> Card.curHp |> float
+          | Some actor -> actor |> Card.hp |> float
           | None -> 0.0
       | AT ->
           match actor with
-          | Some actor -> actor |> Card.curAt |> float
+          | Some actor -> actor |> Card.at |> float
           | None -> 0.0
       | AG ->
           match actor with
-          | Some actor -> actor |> Card.curAg |> float
+          | Some actor -> actor |> Card.ag |> float
           | None -> 0.0
     in value * rate
 

@@ -32,7 +32,7 @@ module Broadcaster =
   let printCardName g cardId =
     let card    = g |> Game.card cardId
     let name    = card |> Card.name
-    let st      = card |> Card.curStatus
+    let st      = card |> Card.status
     let owner   = cardId |> CardId.owner
     in
       match g |> Game.searchBoardFor cardId with
@@ -104,12 +104,12 @@ module Broadcaster =
         printfn " nullified an effect."
 
     | CardHpInc (cardId, amount) ->
-        let curHp = Game.card cardId >> Card.curHp
+        let hp = Game.card cardId >> Card.hp
         do
           printCardName g' cardId
           printfn "'s HP%d→%d (%+d)"
-            (g  |> curHp)
-            (g' |> curHp)
+            (g  |> hp)
+            (g' |> hp)
             amount
 
     | CardRegenerate (cardId, amount) ->
