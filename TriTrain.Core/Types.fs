@@ -206,22 +206,29 @@ module Types =
     | Win           of PlayerId
     | Draw
 
+  type GameUpdate =
+    | GameEnd                 of GameResult
+    | ProcAction              of CardId * Place
+    | ProcSkill               of CardId * Skill
+    | ProcOEffect             of option<CardId> * Place * OEffect
+    | ProcOEffectToCreature   of option<CardId> * CardId * OEffectToUnitType
+    | CardEnter               of CardId * Place
+    | CardDie
+    | CardRegenerate          of CardId * amount: int
+    | CardGainEffect          of CardId * KEffect
+    | CardLoseEffect          of CardId * KEffect
+    | CardHpInc               of CardId * amount: int
+    | CardAbilityTrigger      of Triggered
+    | CardMove                of list<CardId * (* src: *) Place * (* dst: *) Place>
+
   type GameEvent =
+    | GameUpdate              of GameUpdate
     | GameBegin
-    | GameEnd             of GameResult
     | TurnBegin
+    | PhaseBegin              of Phase
+    | SolveTriggered          of Triggered
     | WindBlow
-    | CardEnter           of CardId * Place
-    | CardAbilityTrigger  of Triggered
-    | SolveTriggered      of Triggered
-    | CardBeginAction     of CardId * Skill
-    | CardNullifyEffect   of CardId * OEffectToUnitType
-    | CardHpInc           of CardId * amount: int
-    | CardRegenerate      of CardId * amount: int
-    | CardDie             of CardId
-    | CardGainEffect      of CardId * KEffect
-    | CardLoseEffect      of CardId * KEffect
-    | CardMove            of list<CardId * (* src: *) Place * (* dst: *) Place>
+    | CardNullifyEffect       of CardId * OEffectToUnitType
 
   type Game =
     {
