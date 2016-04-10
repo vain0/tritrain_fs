@@ -89,6 +89,7 @@ module Types =
     | Immune
     | Stable
     | Damned
+    | Haunted
 
   /// 継続的効果 (Continuous Effect)
   type KEffect =
