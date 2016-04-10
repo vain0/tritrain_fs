@@ -265,3 +265,6 @@ module Types =
 
   [<Literal>]
   let MaxDefaultAG = 50
+
+  [<Literal>]
+  let MaxTurns = 20

@@ -478,7 +478,7 @@ module Game =
         in
           // ターン数更新
           match g |> turn with
-          | 20 -> g |> endIn Draw
+          | MaxTurns -> g |> endIn Draw
           | t  -> { g with Turn = t + 1 } |> procPhase SummonPhase
 
   /// 誘発した能力を解決してからフェイズ処理をする
