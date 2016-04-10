@@ -36,7 +36,10 @@ module Dump =
     let form = scope |> Scope.form |> dumpScopeForm
     in
       match scope |> Scope.aggregate with
-      | Each -> form + "(それぞれ)"
+      | Each ->
+          if (scope |> Scope.form |> ScopeForm.maxSize) = 1
+          then form
+          else form + "の各クリーチャー"
       | MaxBy (var, rev) ->
           sprintf "%sで%sが%sのもの"
             form

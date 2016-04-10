@@ -142,6 +142,21 @@ module ScopeForm =
   let placeSet source (form: ScopeForm): Set<Place> =
     placeSetImpl source (form |> typ)
 
+  let maxSize (form: ScopeForm): int =
+    let rec body =
+      function
+      | AbsForm (home, oppo) ->
+          Set.count home + Set.count oppo
+      | FwdSide _ -> 1
+      | BwdSide _ -> 2
+      | LftSide _ -> 2
+      | RgtSide _ -> 2
+      | Self _ -> 1
+      | FrontEnemy -> 1
+      | UnionForm forms ->
+          forms |> List.map body |> List.sum
+    in form |> typ |> body
+
 module Scope =
   let form        (scope: Scope) = scope.Form
   let aggregate   (scope: Scope) = scope.Aggregate
