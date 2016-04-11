@@ -1,8 +1,10 @@
 ﻿namespace TriTrain.Core
 
+open FsRandom
+
 module Random =
   let name () =
-    sprintf "'%.5f'" (Random.rng.NextDouble())
+    String.randomAlphabet 7 |> get
 
   let elem () =
     Elem.all |> Random.element |> Option.get
