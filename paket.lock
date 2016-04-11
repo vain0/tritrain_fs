@@ -2,6 +2,7 @@ NUGET
   remote: https://www.nuget.org/api/v2
   specs:
     FSharp.Configuration (0.5.12)
+    FsRandom (1.3.3)
     FsYaml (2.1)
       FSharp.Configuration (>= 0.4.10)
       YamlDotNet (>= 3.8)
@@ -9,4 +10,4 @@ NUGET
 GITHUB
   remote: fsprojects/Chessie
   specs:
-    src/Chessie/ErrorHandling.fs (7d61e82bf41d1384bd1cc4b61e345e4656f42463)
+    src/Chessie/ErrorHandling.fs (41579d1438b1ffae20762ebc705ac258509102dd)
