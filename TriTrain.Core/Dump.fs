@@ -76,8 +76,8 @@ module Dump =
           sprintf "AGが%s点増加する効果"
             (dumpAmount amount)
       | Regenerate amount ->
-          sprintf "死亡後に最大HPの%s%%で再生する効果"
-            (dumpAmount amount)
+          sprintf "死亡後に最大HPの%s%cで再生する効果"
+            (dumpAmount amount) '%'
       | Immune ->
           "ダメージを受けない効果"
       | Stable ->
@@ -99,9 +99,10 @@ module Dump =
           (dumpScope scope)
           (dumpAmount amount)
     | Death amount ->
-        sprintf "%sを%s%%の確率で即死させる。"
+        sprintf "%sを%s%cの確率で即死させる。"
           (dumpScope scope)
           (dumpAmount amount)
+          '%'
     | Give keff ->
         sprintf "%sに%sを与える。"
           (dumpScope scope)
@@ -121,7 +122,8 @@ module Dump =
     | OEffectToUnits (typ, scope) ->
         dumpOEffectToUnit (typ, scope)
     | Resurrect amount ->
-        "味方1体を最大HPの" + dumpAmount amount + "%%持った状態で蘇生する。"
+        sprintf "味方1体を最大HPの%s%c持った状態で蘇生する。"
+          (dumpAmount amount) '%'
     | Swap form ->
         dumpScopeForm form + "を交代する。"
     | Rotate scopeSide ->
