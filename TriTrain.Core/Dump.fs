@@ -5,6 +5,13 @@ open System
 
 // TODO: internationalization
 module Dump =
+  let dumpElem =
+    function
+    | Air   -> "風"
+    | Fire  -> "火"
+    | Water -> "水"
+    | Earth -> "地"
+
   let dumpRow =
     function
     | FwdRow -> "前列"
@@ -52,6 +59,11 @@ module Dump =
     | WhenEtB -> "盤面に出たとき"
     | WhenDie -> "死亡したとき"
 
+  let dumpStaticCond =
+    function
+    | Resonance elem ->
+        sprintf "自陣に%s属性クリーチャーが3体いる場合" (elem |> dumpElem)
+
   let dumpKEffect keff =
     let duration =
       sprintf "(%dT)" (keff |> KEffect.duration)
@@ -97,6 +109,15 @@ module Dump =
 
   let rec dumpOEffect oeff =
     match oeff with
+    | AsLongAs (cond, then', else') ->
+        sprintf "%s、%s%s"
+          (cond |> dumpStaticCond)
+          (then' |> dumpOEffect)
+          (match else' with
+            | None -> ""
+            | Some oeff -> sprintf "そうでなければ、%s" (oeff |> dumpOEffect)
+            )
+
     | OEffectToUnits (typ, scope) ->
         dumpOEffectToUnit (typ, scope)
     | Resurrect amount ->

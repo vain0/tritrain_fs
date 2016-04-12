@@ -63,6 +63,9 @@ module Skill =
   let give keff scope =
     [OEffectToUnits (Give keff, scope)]
 
+  let resonance elem oeffs =
+    [AsLongAs (Resonance elem, oeffs |> Seq.exactlyOne, None)]
+
   let presetList: list<SkillAtom> =
     [
       ("通常攻撃"     , attack 0.70 oppoFwd)
@@ -120,6 +123,11 @@ module Skill =
 
       ( "憑霊"
       , pair (sacrifice homeFwd) (give (KEffect.create Haunted 3) self) )
+
+      ( "烈風"        , resonance Air   (give (agInc (AT, 0.40) 2) homeEach) )
+      ( "烈火"        , resonance Fire  (give (atInc (AT, 0.40) 2) homeEach) )
+      ( "散水"        , resonance Water (heal 0.30 homeEach) )
+      ( "危地"        , resonance Earth (death 0.10 oppoEach) )
     ]
 
   let preset: Map<Name, Skill> =
