@@ -94,8 +94,8 @@ module Skill =
       , [sacrifice homeFwd; attack 0.20 oppoEach] )
 
       ( "激励"
-      , [ give (atInc 0.15 2) homeEach
-          give (agInc 0.15 2) homeEach ] )
+      , [ give (agInc 0.15 2) homeEach
+          give (atInc 0.15 2) homeEach ] )
 
       ( "照天"
       , [ give (agInc 0.30 3) homeEach
