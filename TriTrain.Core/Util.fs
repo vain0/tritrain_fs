@@ -40,6 +40,9 @@ module T7 =
   let init (f: int -> 't): T7<'t> =
     (f 0, f 1, f 2, f 3, f 4, f 5, f 6)
 
+  let replicate x =
+    init (fun _ -> x)
+
   let map (f: 'x -> 'y) ((x0, x1, x2, x3, x4, x5, x6): T7<'x>): T7<'y> =
     (f x0, f x1, f x2, f x3, f x4, f x5, f x6)
 
