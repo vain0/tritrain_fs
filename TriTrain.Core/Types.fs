@@ -115,7 +115,7 @@ module Types =
   /// 単発的効果 (Oneshot Effect)
   type OEffect =
     | AsLongAs
-      of StaticCond * then': list<OEffect> * else': list<OEffect>
+      of StaticCond * then': OEffect * else': option<OEffect>
     | OEffectToUnits
       of OEffectToUnitType * Scope
     | Resurrect     of Amount

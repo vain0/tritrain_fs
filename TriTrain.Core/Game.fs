@@ -362,7 +362,7 @@ module Game =
 
     | AsLongAs (cond, then', else') ->
         g |> procOEffectList actorIdOpt source
-            (if g |> satisfy cond actorIdOpt then then' else else')
+            (if g |> satisfy cond actorIdOpt then [then'] else else' |> Option.toList)
 
   and procOEffectList actorIdOpt source oeffs g =
     let loop oeff g =

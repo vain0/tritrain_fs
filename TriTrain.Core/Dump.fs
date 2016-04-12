@@ -112,10 +112,10 @@ module Dump =
     | AsLongAs (cond, then', else') ->
         sprintf "%s、%s%s"
           (cond |> dumpStaticCond)
-          (then' |> dumpOEffectList)
-          (if else' = []
-            then ""
-            else sprintf "そうでなければ、%s" (else' |> dumpOEffectList)
+          (then' |> dumpOEffect)
+          (match else' with
+            | None -> ""
+            | Some oeff -> sprintf "そうでなければ、%s" (oeff |> dumpOEffect)
             )
 
     | OEffectToUnits (typ, scope) ->

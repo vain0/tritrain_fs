@@ -64,7 +64,7 @@ module Skill =
     [OEffectToUnits (Give keff, scope)]
 
   let resonance elem oeffs =
-    [AsLongAs (Resonance elem, oeffs, [])]
+    [AsLongAs (Resonance elem, oeffs |> Seq.exactlyOne, None)]
 
   let presetList: list<SkillAtom> =
     [
