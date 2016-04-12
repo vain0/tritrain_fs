@@ -129,6 +129,10 @@ module Map =
         | Some v'   -> m |> Map.add k v'
         ) Map.empty
 
+  /// The number of key-value pairs
+  let size self: int =
+    self |> Map.toSeq |> Seq.length
+
 module Reflection =
   open Microsoft.FSharp.Reflection
 

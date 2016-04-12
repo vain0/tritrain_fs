@@ -323,6 +323,20 @@ module Game =
           )
     in g |> moveCards moves
 
+  /// 行動者が静的条件を満たしているか？
+  let satisfy (cond: StaticCond) actorIdOpt g =
+    match cond with
+    | Resonance elem ->
+        match actorIdOpt with
+        | None -> false
+        | Some actorId ->
+            g |> board (actorId |> CardId.owner)
+            |> Seq.map (fun (KeyValue (_, cardId)) ->
+                g |> card cardId |> Card.elem
+                )
+            |> Seq.toList  // for structural equality
+            |> (=) (List.replicate 3 elem)
+
   let rec procOEffect oeff (actorIdOpt: option<CardId>) (source: Place) g =
     match oeff with
     | GenToken cardSpecs ->
@@ -346,7 +360,11 @@ module Game =
             (g |> findTargets source scope)
             (procOEffectToUnit typ actorIdOpt)
 
-  let rec procOEffectList actorIdOpt source oeffs g =
+    | AsLongAs (cond, then', else') ->
+        g |> procOEffectList actorIdOpt source
+            (if g |> satisfy cond actorIdOpt then then' else else')
+
+  and procOEffectList actorIdOpt source oeffs g =
     let loop oeff g =
       let source =  // actor の最新の位置に更新する
         actorIdOpt

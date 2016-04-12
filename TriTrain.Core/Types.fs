@@ -106,8 +106,16 @@ module Types =
     | Give          of KEffect
     //| Unsummon
 
+  /// ゲームの状態に関する条件
+  type StaticCond =
+    //| Not           of OEffectCond
+    /// 属性共鳴 (自陣にこの属性のクリーチャーが3体存在すること)
+    | Resonance     of Elem
+
   /// 単発的効果 (Oneshot Effect)
   type OEffect =
+    | AsLongAs
+      of StaticCond * then': list<OEffect> * else': list<OEffect>
     | OEffectToUnits
       of OEffectToUnitType * Scope
     | Resurrect     of Amount
