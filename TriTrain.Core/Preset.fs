@@ -68,7 +68,6 @@ module Skill =
       ("通常攻撃"     , [attack 0.70 oppoFwd      ])
       ("後列薙ぎ"     , [attack 0.30 oppoBwdEach  ])
       ("右翼の狙撃"   , [attack 0.60 oppoRgt      ])
-      ("全体攻撃"     , [attack 0.20 oppoEach     ])
       ("大物狙い"     , [attack 0.60 oppoMaxAT    ])
       ("弱者狩り"     , [attack 0.50 oppoMinHP    ])
 
@@ -80,27 +79,19 @@ module Skill =
       ("全体回復"     , [heal 0.20 homeEach])
 
       ("習熟"         , [give (atInc 0.30 2) self])
-      ("協力"         , [give (atInc 0.60 1) homeFwd])
       ("支援"         , [give (atInc 0.30 2) homeFwd])
       ("鼓舞"         , [give (atInc 0.10 2) homeEach])
 
       ("飛翔"         , [give (agInc 0.30 2) self])
-      ("送風"         , [give (agInc 0.30 2) homeFwd])
-      ("旋風"         , [give (agInc 0.15 2) homeBwdEach])
       ("天翔"         , [give (agInc 0.10 2) homeEach])
 
       ("仁王立ち"     , [Swap ScopeForm.selfAndFwd])
       ("退避"         , [Swap ScopeForm.selfAndRgt])
 
-      ("転生印"       , [give (regenerate 0.50 1) homeFwd])
-
       ("堕落"         , [give (KEffect.create Damned 2) oppoEach])
 
       ( "太陽破"
       , [sacrifice homeFwd; attack 0.50 oppoEach] )
-
-      ( "献身"
-      , [death 0.50 self; heal 0.40 homeEach] )
 
       ( "龍ノ舞"
       , [ give (atInc 0.05 2) homeEach
