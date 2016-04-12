@@ -227,7 +227,7 @@ module Game =
             in g |> incCardHp targetId (- amount)
       | Heal amount ->
           g |> incCardHp targetId (amount |> snd |> int |> max 0)
-      | Death  amount ->
+      | Hex amount ->
           let prob   = amount |> snd |> flip (/) 100.0
           let g =
             if Random.roll prob then

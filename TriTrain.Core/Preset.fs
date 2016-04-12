@@ -51,11 +51,11 @@ module Skill =
   let heal rate scope =
     OEffectToUnits (Heal (AT, rate), scope)
 
-  let death rate scope =
-    OEffectToUnits (Death (AT, rate), scope)
+  let hex rate scope =
+    OEffectToUnits (Hex (AT, rate), scope)
 
   let sacrifice scope =
-    OEffectToUnits (Death (One, 100.0), scope)
+    OEffectToUnits (Hex (One, 100.0), scope)
 
   let give keff scope =
     OEffectToUnits (Give keff, scope)
@@ -71,8 +71,8 @@ module Skill =
       ("大物狙い"     , [attack 0.24 oppoMaxAT    ])
       ("弱者狩り"     , [attack 0.20 oppoMinHP    ])
 
-      ("呪詛"         , [death 0.20 oppoFwd])
-      ("禁呪"         , [death 0.05 oppoEach])
+      ("呪詛"         , [hex 0.20 oppoFwd])
+      ("禁呪"         , [hex 0.05 oppoEach])
 
       ("休息"         , [heal 0.40 self])
       ("治療"         , [heal 0.35 homeFwd])

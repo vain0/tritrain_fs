@@ -98,7 +98,7 @@ module Dump =
         sprintf "%sを%s点回復する。"
           (dumpScope scope)
           (dumpAmount amount)
-    | Death amount ->
+    | Hex amount ->
         sprintf "%sを%s%cの確率で即死させる。"
           (dumpScope scope)
           (dumpAmount amount)

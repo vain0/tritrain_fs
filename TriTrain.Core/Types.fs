@@ -102,7 +102,7 @@ module Types =
   type OEffectToUnitType =
     | Damage        of Amount
     | Heal          of Amount
-    | Death         of Amount
+    | Hex           of Amount
     | Give          of KEffect
     //| Unsummon
 

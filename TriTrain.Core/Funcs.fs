@@ -385,9 +385,9 @@ module Amount =
     | Heal amount ->
         let amount = amount |> resolve actorOpt
         in Heal (One, amount)
-    | Death  amount ->
+    | Hex amount ->
         let amount = amount |> resolve actorOpt
-        in Death (One, amount)
+        in Hex (One, amount)
     | Give keff ->
         keff |> resolveKEffect actorOpt target |> Give
 
