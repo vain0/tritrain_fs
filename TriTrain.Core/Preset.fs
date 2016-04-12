@@ -36,8 +36,8 @@ module Scope =
 module KEffect =
   open KEffect
 
-  let atInc amount = create (ATInc amount)
-  let agInc amount = create (AGInc amount)
+  let atInc rate = create (ATInc (AT, rate))
+  let agInc rate = create (AGInc (AT, rate))
 
   let regenerate rate = create (Regenerate (AT, rate))
 
@@ -45,89 +45,74 @@ module Skill =
   open Scope
   open KEffect
 
-  let pair oeffs1 oeffs2 =
-    oeffs1 @ oeffs2
-
   let attack rate scope =
-    [OEffectToUnits (Damage (AT, rate), scope)]
+    OEffectToUnits (Damage (AT, rate), scope)
 
   let heal rate scope =
-    [OEffectToUnits (Heal (AT, rate), scope)]
+    OEffectToUnits (Heal (AT, rate), scope)
 
   let death rate scope =
-    [OEffectToUnits (Death (AT, rate), scope)]
+    OEffectToUnits (Death (AT, rate), scope)
 
   let sacrifice scope =
-    [OEffectToUnits (Death (One, 100.0), scope)]
+    OEffectToUnits (Death (One, 100.0), scope)
 
   let give keff scope =
-    [OEffectToUnits (Give keff, scope)]
+    OEffectToUnits (Give keff, scope)
 
-  let resonance elem oeffs =
-    [AsLongAs (Resonance elem, oeffs |> Seq.exactlyOne, None)]
+  let resonance elem oeff =
+    AsLongAs (Resonance elem, oeff, None)
 
   let presetList: list<SkillAtom> =
     [
-      ("通常攻撃"     , attack 0.70 oppoFwd)
-      ("後列薙ぎ"     , attack 0.30 oppoBwdEach)
-      ("右翼の狙撃"   , attack 0.60 oppoRgt)
-      ("全体攻撃"     , attack 0.20 oppoEach)
-      ("大物狙い"     , attack 0.60 oppoMaxAT)
-      ("弱者狩り"     , attack 0.50 oppoMinHP)
+      ("突撃"         , [attack 0.30 oppoFwd      ])
+      ("薙ぎ払い"     , [attack 0.12 oppoBwdEach  ])
+      ("狙撃"         , [attack 0.20 oppoRgt      ])
+      ("大物狙い"     , [attack 0.24 oppoMaxAT    ])
+      ("弱者狩り"     , [attack 0.20 oppoMinHP    ])
 
-      ("ザキ"         , death 0.30 oppoFwd)
-      ("ザラキ"       , death 0.10 oppoEach)
+      ("呪詛"         , [death 0.20 oppoFwd])
+      ("禁呪"         , [death 0.05 oppoEach])
 
-      ("自己回復"     , heal 0.70 self)
-      ("前列回復"     , heal 0.70 homeFwd)
-      ("全体回復"     , heal 0.20 homeEach)
+      ("休息"         , [heal 0.40 self])
+      ("治療"         , [heal 0.35 homeFwd])
+      ("補給"         , [heal 0.12 homeEach])
 
-      ("習熟"         , give (atInc (AT, 0.30) 2) self)
-      ("協力"         , give (atInc (AT, 0.60) 1) homeFwd)
-      ("支援"         , give (atInc (AT, 0.30) 2) homeFwd)
-      ("鼓舞"         , give (atInc (AT, 0.10) 2) homeEach)
+      ("鍛錬"         , [give (atInc 0.50 2) self])
+      ("支援"         , [give (atInc 0.45 2) homeFwd])
+      ("鼓舞"         , [give (atInc 0.25 2) homeEach])
 
-      ("飛翔"         , give (agInc (AT, 0.30) 2) self)
-      ("送風"         , give (agInc (AT, 0.30) 2) homeFwd)
-      ("旋風"         , give (agInc (AT, 0.15) 2) homeBwdEach)
-      ("天翔"         , give (agInc (AT, 0.10) 2) homeEach)
+      ("飛翔"         , [give (agInc 0.50 2) self])
+      ("天翔"         , [give (agInc 0.25 2) homeEach])
 
       ("仁王立ち"     , [Swap ScopeForm.selfAndFwd])
       ("退避"         , [Swap ScopeForm.selfAndRgt])
 
-      ("転生印"       , give (regenerate 0.50 1) homeFwd)
-
-      ("堕落"         , give (KEffect.create Damned 2) oppoEach)
+      ("堕落"         , [give (KEffect.create Damned 2) oppoEach])
 
       ( "太陽破"
-      , pair (sacrifice homeFwd) (attack 0.50 oppoEach) )
+      , [sacrifice homeFwd; attack 0.20 oppoEach] )
 
-      ( "献身"
-      , pair(death 0.50 self) (heal 0.40 homeEach) )
-
-      ( "龍ノ舞"
-      , pair
-          (give (atInc (AT, 0.05) 2) homeEach)
-          (give (agInc (AT, 0.05) 2) homeEach) )
+      ( "激励"
+      , [ give (atInc 0.15 2) homeEach
+          give (agInc 0.15 2) homeEach ] )
 
       ( "照天"
-      , [ yield! give (agInc (AT, 0.30) 3) homeEach
-          yield! give (atInc (AT, 0.30) 3) homeEach
-          yield! give (KEffect.create Stable 2) homeEach
+      , [ give (agInc 0.30 3) homeEach
+          give (atInc 0.30 3) homeEach
+          give (KEffect.create Stable 2) homeEach
         ] )
 
-      ("奇跡"
-      , pair
-          [Resurrect (AT, 0.30)]
-          (give (agInc (AT, -0.30) 2) homeEach) )
+      ("奇跡"         , [Resurrect (AT, 0.30)])
 
       ( "憑霊"
-      , pair (sacrifice homeFwd) (give (KEffect.create Haunted 3) self) )
+      , [sacrifice homeFwd; give (KEffect.create Haunted 3) self] )
 
-      ( "烈風"        , resonance Air   (give (agInc (AT, 0.40) 2) homeEach) )
-      ( "烈火"        , resonance Fire  (give (atInc (AT, 0.40) 2) homeEach) )
-      ( "散水"        , resonance Water (heal 0.30 homeEach) )
-      ( "危地"        , resonance Earth (death 0.10 oppoEach) )
+      ( "烈風"        , [resonance Air   (give (agInc 0.40 2) homeEach)] )
+      ( "烈火"        , [resonance Fire  (give (atInc 0.40 2) homeEach)] )
+      ( "散水"        , [resonance Water (heal 0.30 homeEach)] )
+      ( "救地"
+      , [resonance Earth (give (KEffect.create (Regenerate (AT, 0.30)) 2) homeFwd)] )
     ]
 
   let preset: Map<Name, Skill> =
@@ -161,10 +146,10 @@ module Ability =
 
   let presetList: list<Ability> =
     [
-      ("躍神"         , (WhenBoT, give (atInc (AT, 0.10) 3) self))
-      ("不傷"         , (WhenEtB, give (KEffect.create Immune 1) self))
-      ("恒常"         , (WhenEtB, give (KEffect.create Stable 1) self))
-      ("神速"         , (WhenEtB, give (agInc (One, 30.0) 1) self))
+      ("晩成"         , (WhenBoT, [give (atInc 0.10 3) self]))
+      ("不傷"         , (WhenEtB, [give (KEffect.create Immune 1) self]))
+      ("恒常"         , (WhenEtB, [give (KEffect.create Stable 1) self]))
+      ("神速"         , (WhenEtB, [give (KEffect.create (AGInc (One, 30.0)) 1) self]))
     ]
 
   let preset: Map<Name, Ability> =
