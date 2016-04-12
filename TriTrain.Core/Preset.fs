@@ -65,20 +65,20 @@ module Skill =
 
   let presetList: list<SkillAtom> =
     [
-      ("通常攻撃"     , [attack 0.70 oppoFwd      ])
-      ("後列薙ぎ"     , [attack 0.30 oppoBwdEach  ])
-      ("右翼の狙撃"   , [attack 0.60 oppoRgt      ])
+      ("突撃"         , [attack 0.70 oppoFwd      ])
+      ("薙ぎ払い"     , [attack 0.30 oppoBwdEach  ])
+      ("狙撃"         , [attack 0.60 oppoRgt      ])
       ("大物狙い"     , [attack 0.60 oppoMaxAT    ])
       ("弱者狩り"     , [attack 0.50 oppoMinHP    ])
 
-      ("ザキ"         , [death 0.30 oppoFwd])
-      ("ザラキ"       , [death 0.10 oppoEach])
+      ("呪詛"         , [death 0.30 oppoFwd])
+      ("禁呪"         , [death 0.10 oppoEach])
 
-      ("自己回復"     , [heal 0.70 self])
-      ("前列回復"     , [heal 0.70 homeFwd])
-      ("全体回復"     , [heal 0.20 homeEach])
+      ("休息"         , [heal 0.70 self])
+      ("治療"         , [heal 0.70 homeFwd])
+      ("補給"         , [heal 0.20 homeEach])
 
-      ("習熟"         , [give (atInc 0.30 2) self])
+      ("鍛錬"         , [give (atInc 0.30 2) self])
       ("支援"         , [give (atInc 0.30 2) homeFwd])
       ("鼓舞"         , [give (atInc 0.10 2) homeEach])
 
@@ -93,7 +93,7 @@ module Skill =
       ( "太陽破"
       , [sacrifice homeFwd; attack 0.50 oppoEach] )
 
-      ( "龍ノ舞"
+      ( "激励"
       , [ give (atInc 0.05 2) homeEach
           give (agInc 0.05 2) homeEach ] )
 
@@ -147,7 +147,7 @@ module Ability =
 
   let presetList: list<Ability> =
     [
-      ("躍神"         , (WhenBoT, [give (atInc 0.10 3) self]))
+      ("晩成"         , (WhenBoT, [give (atInc 0.10 3) self]))
       ("不傷"         , (WhenEtB, [give (KEffect.create Immune 1) self]))
       ("恒常"         , (WhenEtB, [give (KEffect.create Stable 1) self]))
       ("神速"         , (WhenEtB, [give (KEffect.create (AGInc (One, 30.0)) 1) self]))
