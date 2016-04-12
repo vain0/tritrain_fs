@@ -65,25 +65,25 @@ module Skill =
 
   let presetList: list<SkillAtom> =
     [
-      ("突撃"         , [attack 0.70 oppoFwd      ])
-      ("薙ぎ払い"     , [attack 0.30 oppoBwdEach  ])
-      ("狙撃"         , [attack 0.60 oppoRgt      ])
-      ("大物狙い"     , [attack 0.60 oppoMaxAT    ])
-      ("弱者狩り"     , [attack 0.50 oppoMinHP    ])
+      ("突撃"         , [attack 0.30 oppoFwd      ])
+      ("薙ぎ払い"     , [attack 0.12 oppoBwdEach  ])
+      ("狙撃"         , [attack 0.20 oppoRgt      ])
+      ("大物狙い"     , [attack 0.24 oppoMaxAT    ])
+      ("弱者狩り"     , [attack 0.20 oppoMinHP    ])
 
-      ("呪詛"         , [death 0.30 oppoFwd])
-      ("禁呪"         , [death 0.10 oppoEach])
+      ("呪詛"         , [death 0.20 oppoFwd])
+      ("禁呪"         , [death 0.05 oppoEach])
 
-      ("休息"         , [heal 0.70 self])
-      ("治療"         , [heal 0.70 homeFwd])
-      ("補給"         , [heal 0.20 homeEach])
+      ("休息"         , [heal 0.40 self])
+      ("治療"         , [heal 0.35 homeFwd])
+      ("補給"         , [heal 0.12 homeEach])
 
-      ("鍛錬"         , [give (atInc 0.30 2) self])
-      ("支援"         , [give (atInc 0.30 2) homeFwd])
-      ("鼓舞"         , [give (atInc 0.10 2) homeEach])
+      ("鍛錬"         , [give (atInc 0.50 2) self])
+      ("支援"         , [give (atInc 0.45 2) homeFwd])
+      ("鼓舞"         , [give (atInc 0.25 2) homeEach])
 
-      ("飛翔"         , [give (agInc 0.30 2) self])
-      ("天翔"         , [give (agInc 0.10 2) homeEach])
+      ("飛翔"         , [give (agInc 0.50 2) self])
+      ("天翔"         , [give (agInc 0.25 2) homeEach])
 
       ("仁王立ち"     , [Swap ScopeForm.selfAndFwd])
       ("退避"         , [Swap ScopeForm.selfAndRgt])
@@ -91,11 +91,11 @@ module Skill =
       ("堕落"         , [give (KEffect.create Damned 2) oppoEach])
 
       ( "太陽破"
-      , [sacrifice homeFwd; attack 0.50 oppoEach] )
+      , [sacrifice homeFwd; attack 0.20 oppoEach] )
 
       ( "激励"
-      , [ give (atInc 0.05 2) homeEach
-          give (agInc 0.05 2) homeEach ] )
+      , [ give (atInc 0.15 2) homeEach
+          give (agInc 0.15 2) homeEach ] )
 
       ( "照天"
       , [ give (agInc 0.30 3) homeEach
