@@ -70,13 +70,23 @@ module Game =
       else g
     in g
 
+  let incCardAt targetId amount g =
+    g
+    |> modifyCard (Card.incAt (amount |> int)) targetId
+    |> happen (CardAtInc (targetId, amount))
+
+  let incCardAg targetId amount g =
+    g
+    |> modifyCard (Card.incAt (amount |> int)) targetId
+    |> happen (CardAgInc (targetId, amount))
+
   /// 継続的効果を取得するときの処理
   let onGainKEffect targetId keff g =
     match keff |> KEffect.typ with
     | ATInc (One, value) ->
-        g |> modifyCard (Card.incAt (value |> int)) targetId
+        g |> incCardAt targetId (value |> int)
     | AGInc (One, value) ->
-        g |> modifyCard (Card.incAg (value |> int)) targetId
+        g |> incCardAg targetId (value |> int)
     | ATInc _
     | AGInc _ -> failwith "never"
     | Regenerate _
@@ -90,9 +100,9 @@ module Game =
   let onLoseKEffect targetId keff g =
     match keff |> KEffect.typ with
     | ATInc (One, value) ->
-        g |> modifyCard (Card.incAt (value |> int |> (~-))) targetId
+        g |> incCardAt targetId (value |> int |> (~-))
     | AGInc (One, value) ->
-        g |> modifyCard (Card.incAg (value |> int |> (~-))) targetId
+        g |> incCardAg targetId (value |> int |> (~-))
     | ATInc _
     | AGInc _ -> failwith "never"
     | Haunted ->
