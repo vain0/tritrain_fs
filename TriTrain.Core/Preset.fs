@@ -103,9 +103,7 @@ module Skill =
           give (KEffect.create Stable 2) homeEach
         ] )
 
-      ("奇跡"
-      , [ Resurrect (AT, 0.30)
-          give (agInc (-0.30) 2) homeEach ] )
+      ("奇跡"         , [Resurrect (AT, 0.30)])
 
       ( "憑霊"
       , [sacrifice homeFwd; give (KEffect.create Haunted 3) self] )
@@ -113,7 +111,8 @@ module Skill =
       ( "烈風"        , [resonance Air   (give (agInc 0.40 2) homeEach)] )
       ( "烈火"        , [resonance Fire  (give (atInc 0.40 2) homeEach)] )
       ( "散水"        , [resonance Water (heal 0.30 homeEach)] )
-      ( "危地"        , [resonance Earth (death 0.10 oppoEach)] )
+      ( "救地"
+      , [resonance Earth (give (KEffect.create (Regenerate (AT, 0.30)) 2) homeFwd)] )
     ]
 
   let preset: Map<Name, Skill> =
