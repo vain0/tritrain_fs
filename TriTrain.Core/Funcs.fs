@@ -194,8 +194,10 @@ module KEffect =
 
   let isCancelledBy keffcan keff =
     match (keffcan, keff |> typ) with
+    | (AgIncCanceller, AGInc _)
     | (ImmuneCanceller, Immune)
       -> true
+    | (AgIncCanceller, _)
     | (ImmuneCanceller, _)
       -> false
 

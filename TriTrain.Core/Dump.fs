@@ -92,6 +92,7 @@ module Dump =
   /// これが打ち消せる効果を表す語句
   let dumpKEffectCanceller =
     function
+    | AgIncCanceller -> "AGが増減する効果"
     | ImmuneCanceller -> dumpKEffectType Immune
 
   let dumpOEffectToUnit (typ, scope) =

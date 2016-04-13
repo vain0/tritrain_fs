@@ -82,6 +82,7 @@ module Types =
     int
 
   type KEffectCanceller =
+    | AgIncCanceller
     | ImmuneCanceller
 
   /// クリーチャーに作用する継続的効果
