@@ -60,6 +60,9 @@ module Skill =
   let give keff scope =
     OEffectToUnits (Give keff, scope)
 
+  let cancel keffcan scope =
+    OEffectToUnits (Cancel keffcan, scope)
+
   let resonance elem oeff =
     AsLongAs (Resonance elem, oeff, None)
 
@@ -89,6 +92,8 @@ module Skill =
       ("退避"         , [Swap ScopeForm.selfAndRgt])
 
       ("堕落"         , [give (KEffect.create Damned 2) oppoEach])
+
+      ( "幻痛"        , [cancel ImmuneCanceller oppoEach])
 
       ( "太陽破"
       , [sacrifice homeFwd; attack 0.20 oppoEach] )
