@@ -189,6 +189,9 @@ module KEffect =
       Duration    = duration
     }
 
+  let decDuration keff =
+    { keff with Duration = (keff |> duration) - 1 }
+
 module Skill =
   let rec toAtomList: Skill -> list<SkillAtom> =
     function
@@ -333,6 +336,22 @@ module Card =
     |> spec
     |> CardSpec.skills
     |> Map.tryFind (vx |> Row.ofVertex)
+
+  /// 継続的効果を失う。
+  /// selector が真を返したものが消える。
+  /// (恒常は作用しない。)
+  let loseEffects selector card =
+    let (lost, effs') =
+      card |> effects
+      |> List.partition (fun keff -> keff |> selector)
+    let card' =
+      { card with Effects = effs' }
+    in (card', lost)
+
+  /// 継続的効果の持続ターン数を更新する。
+  let decDuration card =
+    let effs' = card |> effects |> List.map KEffect.decDuration
+    in { card with Effects = effs' }
 
 module Amount =
   /// 変量を決定する
