@@ -192,6 +192,13 @@ module KEffect =
   let decDuration keff =
     { keff with Duration = (keff |> duration) - 1 }
 
+  let isCancelledBy keffcan keff =
+    match (keffcan, keff |> typ) with
+    | (ImmuneCanceller, Immune)
+      -> true
+    | (ImmuneCanceller, _)
+      -> false
+
 module Skill =
   let rec toAtomList: Skill -> list<SkillAtom> =
     function
@@ -409,6 +416,8 @@ module Amount =
         in Hex (One, amount)
     | Give keff ->
         keff |> resolveKEffect actorOpt target |> Give
+    | Cancel _
+      -> oeffType
 
 module DeckSpec =
   let name        (spec: DeckSpec) = spec.Name

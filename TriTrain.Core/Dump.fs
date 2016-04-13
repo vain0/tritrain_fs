@@ -89,6 +89,11 @@ module Dump =
     let typ = keff |> KEffect.typ |> dumpKEffectType
     in typ + dur
 
+  /// これが打ち消せる効果を表す語句
+  let dumpKEffectCanceller =
+    function
+    | ImmuneCanceller -> dumpKEffectType Immune
+
   let dumpOEffectToUnit (typ, scope) =
     match typ with
     | Damage amount ->
@@ -108,6 +113,10 @@ module Dump =
         sprintf "%sに%sを与える。"
           (dumpScope scope)
           (dumpKEffect keff)
+    | Cancel keffcan ->
+        sprintf "%sにかかっている%sを打ち消す。"
+          (dumpScope scope)
+          (dumpKEffectCanceller keffcan)
 
   let rec dumpOEffect oeff =
     match oeff with

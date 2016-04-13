@@ -222,6 +222,12 @@ module Game =
           |> onLoseKEffect targetId keff
           )
 
+  let cancelKEffect keffcan targetId g =
+    if g |> card targetId |> Card.isStable then
+      g |> happen (CardNullifyEffect (targetId, Cancel keffcan))
+    else
+      g |> loseKEffect targetId (KEffect.isCancelledBy keffcan)
+
   let rec procOEffectToUnit oeffType actorIdOpt targetId g =
     let target    = g |> card targetId
     let actorOpt  = actorIdOpt |> Option.map (fun actorId -> g |> card actorId)
@@ -256,6 +262,8 @@ module Game =
           in g
       | Give keff ->
           g |> giveKEffect targetId keff
+      | Cancel keffcan ->
+          g |> cancelKEffect keffcan targetId
     in g
 
   let findTargets source scope g =

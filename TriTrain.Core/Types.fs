@@ -81,6 +81,9 @@ module Types =
   type Duration =
     int
 
+  type KEffectCanceller =
+    | ImmuneCanceller
+
   /// クリーチャーに作用する継続的効果
   type KEffectType =
     | ATInc         of Amount
@@ -104,6 +107,7 @@ module Types =
     | Heal          of Amount
     | Hex           of Amount
     | Give          of KEffect
+    | Cancel        of KEffectCanceller
     //| Unsummon
 
   /// ゲームの状態に関する条件
