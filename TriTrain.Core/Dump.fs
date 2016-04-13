@@ -75,6 +75,9 @@ module Dump =
     | Regenerate amount ->
         sprintf "死亡後に最大HPの%s%cで再生する効果"
           (dumpAmount amount) '%'
+    | Curse amount ->
+        sprintf "毎ターン%s点のダメージを受ける呪いの効果"
+          (dumpAmount amount)
     | Immune ->
         "ダメージを受けない効果"
     | Stable ->
@@ -93,6 +96,7 @@ module Dump =
   let dumpKEffectCanceller =
     function
     | AgIncCanceller -> "AGが増減する効果"
+    | CurseCanceller  -> "呪いの効果"
     | ImmuneCanceller -> dumpKEffectType Immune
 
   let dumpOEffectToUnit (typ, scope) =

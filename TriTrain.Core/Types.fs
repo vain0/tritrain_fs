@@ -83,12 +83,14 @@ module Types =
 
   type KEffectCanceller =
     | AgIncCanceller
+    | CurseCanceller
     | ImmuneCanceller
 
   /// クリーチャーに作用する継続的効果
   type KEffectType =
     | ATInc         of Amount
     | AGInc         of Amount
+    | Curse         of Amount
     | Regenerate    of Amount
     | Immune
     | Stable
@@ -232,6 +234,7 @@ module Types =
     | SolveTriggered      of Triggered
     | CardBeginAction     of CardId * Skill
     | CardNullifyEffect   of CardId * OEffectToUnitType
+    | CardIsCursed        of CardId * amount: int
     | CardHpInc           of CardId * amount: int
     | CardRegenerate      of CardId * amount: int
     | CardIsExiled        of CardId

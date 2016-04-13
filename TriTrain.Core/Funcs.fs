@@ -195,9 +195,11 @@ module KEffect =
   let isCancelledBy keffcan keff =
     match (keffcan, keff |> typ) with
     | (AgIncCanceller, AGInc _)
+    | (CurseCanceller, Curse _)
     | (ImmuneCanceller, Immune)
       -> true
     | (AgIncCanceller, _)
+    | (CurseCanceller, _)
     | (ImmuneCanceller, _)
       -> false
 
@@ -292,6 +294,11 @@ module Card =
   let ag        = status >> Status.ag
   let isAlive   = hp >> flip (>) 0 
   let isDead    = isAlive >> not
+
+  let curseTotal card =
+    card |> effects
+    |> List.sumBy (function | { Type = Curse (One, value) } -> value | _ -> 0.0)
+    |> int
 
   let isImmune card =
     card |> effects
@@ -395,6 +402,8 @@ module Amount =
         { keff with Type = ATInc (One, amount |> resolve actorOpt) }
     | AGInc amount ->
         { keff with Type = AGInc (One, amount |> resolve actorOpt) }
+    | Curse amount ->
+        { keff with Type = Curse (One, amount |> resolve actorOpt)}
     | Regenerate amount ->
         { keff with Type = Regenerate (One, amount |> resolve actorOpt) }
     | Immune

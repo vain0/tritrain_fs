@@ -173,6 +173,7 @@ module Game =
         g |> modifyCard (Card.incAg (value |> int)) targetId
     | ATInc _
     | AGInc _ -> failwith "never"
+    | Curse _
     | Regenerate _
     | Immune
     | Stable
@@ -191,6 +192,7 @@ module Game =
     | AGInc _ -> failwith "never"
     | Haunted ->
         g |> dieCard targetId
+    | Curse _
     | Regenerate _
     | Immune
     | Stable
@@ -485,6 +487,19 @@ module Game =
             (fun (KeyValue (source, actorId)) -> procOEffect oeff (actorId |> Some) source)
     else g
 
+  /// 呪いの効果を処理する
+  let procCurse g =
+    g |> fold' (g |> placeMap)
+        (fun (KeyValue (place, cardId)) g ->
+            match g |> card cardId |> Card.curseTotal with
+            | 0 -> g
+            | total ->
+                g
+                |> happen (CardIsCursed (cardId, total))
+                |> procOEffectToUnit (Damage (One, float total)) None cardId
+                |> cancelKEffect CurseCanceller cardId
+            )
+
   /// カードにかかっている継続的効果の経過ターン数を更新する
   let updateDuration cardId g =
     g
@@ -538,7 +553,7 @@ module Game =
 
     | PassPhase ->
         let g =
-          g |> updateDurationAll
+          g |> procCurse |> updateDurationAll
         in
           // ターン数更新
           match g |> turn with
