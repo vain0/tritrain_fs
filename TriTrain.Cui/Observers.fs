@@ -105,6 +105,10 @@ module Broadcaster =
         printCardName g' cardId
         printfn " nullified an effect."
 
+    | CardIsCursed (cardId, _) ->
+        printCardName g' cardId
+        printfn " is cursed."
+
     | CardHpInc (cardId, amount) ->
         let hp = Game.card cardId >> Card.hp
         do
