@@ -208,6 +208,26 @@ module Game =
       let g         = g |> onGainKEffect targetId keff
       in g
 
+  /// カードから、selector が真を返すような継続的効果を失わせる。
+  /// (恒常は作用しない。)
+  let loseKEffect targetId selector g =
+    let target          = g |> card targetId
+    let (card', lost)   = target |> Card.loseEffects selector
+    in
+      g
+      |> updateCard card'
+      |> fold' lost (fun keff g ->
+          g
+          |> happen (CardLoseEffect (targetId, keff))
+          |> onLoseKEffect targetId keff
+          )
+
+  let cancelKEffect keffcan targetId g =
+    if g |> card targetId |> Card.isStable then
+      g |> happen (CardNullifyEffect (targetId, Cancel keffcan))
+    else
+      g |> loseKEffect targetId (KEffect.isCancelledBy keffcan)
+
   let rec procOEffectToUnit oeffType actorIdOpt targetId g =
     let target    = g |> card targetId
     let actorOpt  = actorIdOpt |> Option.map (fun actorId -> g |> card actorId)
@@ -242,6 +262,8 @@ module Game =
           in g
       | Give keff ->
           g |> giveKEffect targetId keff
+      | Cancel keffcan ->
+          g |> cancelKEffect keffcan targetId
     in g
 
   let findTargets source scope g =
@@ -465,27 +487,9 @@ module Game =
 
   /// カードにかかっている継続的効果の経過ターン数を更新する
   let updateDuration cardId g =
-    let card = g |> card cardId 
-    let (effects', endEffects') =
-      card
-      |> Card.effects
-      |> List.map (fun keff ->
-          if (keff |> KEffect.duration) <= 1
-          then (None, Some keff)
-          else ({ keff with Duration = (keff |> KEffect.duration) - 1 } |> Some, None)
-          )
-      |> List.unzip
-    let card' = { card with Effects = effects' |> List.choose id }
-    in
-      g
-      |> updateCard card'
-      |> fold'
-          (endEffects' |> List.choose id)
-          (fun keff g ->
-              g
-              |> happen (CardLoseEffect (cardId, keff))
-              |> onLoseKEffect cardId keff
-              )
+    g
+    |> updateCard (g |> card cardId |> Card.decDuration)
+    |> loseKEffect cardId (function | { Duration = 0 } -> true | _ -> false)
   
   let updateDurationAll g =
     g |> fold'

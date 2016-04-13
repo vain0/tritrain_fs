@@ -20,6 +20,9 @@ module ScopeForm =
   let selfAndRgt =
     ("自身と右翼", UnionForm [Self; homeRgt |> snd])
 
+  let bothAll =
+    ("両陣全体", AbsForm (set Vertex.all, set Vertex.all))
+
 module Scope =
   let self          = Scope.each ScopeForm.self
   let homeFwd       = Scope.each ScopeForm.homeFwd
@@ -29,6 +32,7 @@ module Scope =
   let oppoBwdEach   = Scope.each ScopeForm.oppoBwd
   let oppoEach      = Scope.each ScopeForm.oppoAll
   let oppoRgt       = Scope.each ScopeForm.oppoRgt
+  let bothEach      = Scope.each ScopeForm.bothAll
 
   let oppoMinHP     = Scope.minBy HP ScopeForm.oppoAll
   let oppoMaxAT     = Scope.maxBy AT ScopeForm.oppoAll
@@ -60,6 +64,9 @@ module Skill =
   let give keff scope =
     OEffectToUnits (Give keff, scope)
 
+  let cancel keffcan scope =
+    OEffectToUnits (Cancel keffcan, scope)
+
   let resonance elem oeff =
     AsLongAs (Resonance elem, oeff, None)
 
@@ -89,6 +96,9 @@ module Skill =
       ("退避"         , [Swap ScopeForm.selfAndRgt])
 
       ("堕落"         , [give (KEffect.create Damned 2) oppoEach])
+
+      ("凪"           , [cancel AgIncCanceller bothEach])
+      ( "幻痛"        , [cancel ImmuneCanceller oppoEach])
 
       ( "太陽破"
       , [sacrifice homeFwd; attack 0.20 oppoEach] )
