@@ -236,6 +236,8 @@ module Types =
     | CardNullifyEffect   of CardId * OEffectToUnitType
     | CardIsCursed        of CardId * amount: int
     | CardHpInc           of CardId * amount: int
+    | CardAtInc           of CardId * amount: int
+    | CardAgInc           of CardId * amount: int
     | CardRegenerate      of CardId * amount: int
     | CardIsExiled        of CardId
     | CardDie             of CardId
