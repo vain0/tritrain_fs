@@ -2,9 +2,19 @@
 
 open TriTrain.Core
 open System
+open System.Collections.Specialized
 open System.Net
 open System.IO
+open System.Text
 open Chessie.ErrorHandling
+
+module NameValueCollection =
+  let ofSeq kvs =
+    NameValueCollection()
+    |> tap (fun nvc ->
+        for (k, v) in kvs do
+          nvc.Add(k, v)
+        )
 
 module Cake =
   let url args =
@@ -27,6 +37,37 @@ module Cake =
       return! reader.ReadToEndAsync() |> Async.AwaitTask
     }
 
+  let postAsync args data =
+    async {
+      use wc    = new WebClient()
+      let uri   = Uri(url args)
+      let data  = NameValueCollection.ofSeq data
+      let! buf  =
+        wc.UploadValuesTaskAsync(uri, data)
+        |> Async.AwaitTask
+      return Encoding.UTF8.GetString(buf)
+    }
+
+  let tryLogin userName password =
+    trial {
+      let res = 
+        [
+          ("username", userName)
+          ("password", password)
+        ]
+        |> postAsync ["login"]
+        |> Async.RunSynchronously
+      match res |> Int32.TryParse with
+      | true, userId -> return userId
+      | false, _ -> return! fail "User name or password is incorrect."
+    }
+
+  let logout () =
+    []
+    |> postAsync ["logout"]
+    |> Async.Ignore
+    |> Async.RunSynchronously
+
   let (|Command|_|) =
     function
     | "json" :: args ->
@@ -34,5 +75,13 @@ module Cake =
           requestJsonTextAsync args
           |> Async.RunSynchronously
           |> printfn "%s"
+        } |> Some
+    | "cake" :: userName :: password :: _ ->
+        trial {
+          let! userId = tryLogin userName password
+          try
+            printfn "Welcome!"
+          finally
+            logout ()
         } |> Some
     | _ -> None
