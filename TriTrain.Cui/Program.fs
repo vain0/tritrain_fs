@@ -29,6 +29,7 @@ effs                    Show preset effects
     | TestBattle r -> r
     | RoundRobin r -> r
     | Random r -> r
+    | Cake.Command r -> r
 
     | ["effs"] ->
         trial {

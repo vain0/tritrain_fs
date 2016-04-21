@@ -66,6 +66,7 @@
     <Compile Include="Random.fs" />
     <Compile Include="Observers.fs" />
     <Compile Include="TestBattle.fs" />
+    <Compile Include="Cake.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +77,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TriTrain.Core\TriTrain.Core.fsproj">
