@@ -28,8 +28,10 @@ module Cake =
 
   let (|Command|_|) =
     function
-    | "cake" :: _ ->
+    | "json" :: args ->
         trial {
-          return ()
+          requestJsonTextAsync args
+          |> Async.RunSynchronously
+          |> printfn "%s"
         } |> Some
     | _ -> None
