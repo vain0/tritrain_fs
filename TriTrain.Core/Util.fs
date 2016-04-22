@@ -185,6 +185,18 @@ module Random =
       then None
       else xs |> Seq.item (rng.Next(0, len - 1)) |> Some
 
+module Hash =
+  open System.Security.Cryptography
+  open System.Text
+
+  let toString: byte [] -> string =
+    Array.map (sprintf "%02x") >> String.concat ""
+
+  let hashString (s: string) =
+    let data = Encoding.UTF8.GetBytes(s)
+    let hash = MD5.Create().ComputeHash(data)
+    in hash |> toString
+
 [<RequireQualifiedAccess>]
 module Observable =
   open System.Diagnostics

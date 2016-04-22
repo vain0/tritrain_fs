@@ -89,6 +89,10 @@ module CardSpec =
       SkillBwd    = cspec |> CardSpec.skills |> Skill.toSrcOf BwdRow
     }
 
+module CardSpecSrc =
+  let toHash (src: CardSpecSrc) =
+    src |> Yaml.dump |> Hash.hashString
+
 module DeckSpec =
   let ofSrc (src: DeckSpecSrc): Result<DeckSpec, _> =
     trial {
