@@ -68,6 +68,23 @@ module Cake =
     |> Async.Ignore
     |> Async.RunSynchronously
 
+  let usage () =
+    """
+Type one of these commands:
+(No commands available now)
+"""
+
+  let rec cake () =
+    trial {
+      match Console.ReadLine() with
+      | null | "end" | "exit" | "halt" | "quit" -> return ()
+      | line ->
+          let args = line.Split([|' '|], StringSplitOptions.RemoveEmptyEntries)
+          match args |> Array.toList with
+          | _ -> printfn "%s" (usage ())
+          return! cake ()
+    }
+
   let (|Command|_|) =
     function
     | "json" :: args ->
@@ -81,6 +98,7 @@ module Cake =
           let! userId = tryLogin userName password
           try
             printfn "Welcome!"
+            do! cake ()
           finally
             logout ()
         } |> Some
