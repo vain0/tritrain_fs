@@ -2,11 +2,18 @@ NUGET
   remote: https://www.nuget.org/api/v2
   specs:
     FSharp.Configuration (0.5.12)
+    FSharp.Core (4.0.0.1)
     FsYaml (2.1)
       FSharp.Configuration (>= 0.4.10)
       YamlDotNet (>= 3.8)
+    Newtonsoft.Json (8.0.3)
+    Newtonsoft.Json.FSharp (3.2.2)
+      FSharp.Core (>= 3.1.2.1)
+      Newtonsoft.Json (>= 6.0.8)
+      NodaTime (>= 1.3)
+    NodaTime (1.3.2)
     YamlDotNet (3.8)
 GITHUB
   remote: fsprojects/Chessie
   specs:
-    src/Chessie/ErrorHandling.fs (7d61e82bf41d1384bd1cc4b61e345e4656f42463)
+    src/Chessie/ErrorHandling.fs (683c29b387a972e26e6e40826f4eb43627e7775b)
