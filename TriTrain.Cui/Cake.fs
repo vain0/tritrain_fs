@@ -17,30 +17,30 @@ module NameValueCollection =
         )
 
 module Cake =
-  let url args =
+  let url action =
     @"http://vain0.s2.xrea.com/tritrain_cake/services/"
-    + (args |> String.concat "/")
+    + (action |> String.concat "/")
 
-  let requestJsonAsync args =
+  let requestJsonAsync action =
     async {
-      let req = WebRequest.CreateHttp(url args)
+      let req = WebRequest.CreateHttp(url action)
       req.Method <- WebRequestMethods.Http.Get
       req.Accept <- "application/json"
       return! req.GetResponseAsync() |> Async.AwaitTask
     }
 
-  let requestJsonTextAsync args =
+  let requestJsonTextAsync action =
     async {
-      let! res    = requestJsonAsync args
+      let! res    = requestJsonAsync action
       let stream  = res.GetResponseStream()
       let reader  = new StreamReader(stream)
       return! reader.ReadToEndAsync() |> Async.AwaitTask
     }
 
-  let postAsync args data =
+  let postAsync action data =
     async {
       use wc    = new WebClient()
-      let uri   = Uri(url args)
+      let uri   = Uri(url action)
       let data  = NameValueCollection.ofSeq data
       let! buf  =
         wc.UploadValuesTaskAsync(uri, data)
