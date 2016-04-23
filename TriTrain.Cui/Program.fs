@@ -15,6 +15,7 @@ test deck1 deck2        Simulate battles between deck1 and deck2
 rr   decks...           Simulate round-robin tournament with decks
 rand                    Generate random deck
 effs                    Show preset effects
+cake username password  Run interactive tritrain_cake client
 """
 
   let rec procCommandArgs =
