@@ -21,17 +21,12 @@ module Cake =
     @"http://vain0.s2.xrea.com/tritrain_cake/services/"
     + (action |> String.concat "/")
 
-  let getJsonAsync action =
+  let getJsonTextAsync action =
     async {
       let req = WebRequest.CreateHttp(url action)
       req.Method <- WebRequestMethods.Http.Get
       req.Accept <- "application/json"
-      return! req.GetResponseAsync() |> Async.AwaitTask
-    }
-
-  let getJsonTextAsync action =
-    async {
-      let! res    = getJsonAsync action
+      let! res    = req.GetResponseAsync() |> Async.AwaitTask
       let stream  = res.GetResponseStream()
       let reader  = new StreamReader(stream)
       return! reader.ReadToEndAsync() |> Async.AwaitTask
