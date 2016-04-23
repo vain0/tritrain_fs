@@ -4,6 +4,13 @@ open TriTrain.Core
 open System
 open Chessie.ErrorHandling
 
+[<AutoOpen>]
+module CommandLineExtension =
+  let (|Int32|_|) s =
+    match s |> Int32.TryParse with
+    | true, n -> Some n
+    | false, _ -> None
+
 module Console =
   open Printf
 

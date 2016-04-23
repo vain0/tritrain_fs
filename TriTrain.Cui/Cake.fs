@@ -1,12 +1,16 @@
 ﻿namespace TriTrain.Cui
 
 open TriTrain.Core
+open TriTrain.Core.Serialize
 open TriTrain.Cui.Web
 open System
 open System.Net
 open System.IO
 open System.Text
 open Chessie.ErrorHandling
+open Newtonsoft.Json
+open Newtonsoft.Json.FSharp
+open FsYaml
 
 module Cake =
   let url action =
@@ -52,10 +56,33 @@ module Cake =
     |> Async.Ignore
     |> Async.RunSynchronously
 
+  let join leagueId cardListPath =
+    trial {
+      let  text      = File.ReadAllText(cardListPath)
+      let! cardList  =
+        text
+        |> Yaml.myTryLoad<CardSpecSrc []>
+        |> Trial.mapFailure (List.map (fun e -> e.Message))
+      let yamlList   =
+        cardList |> Array.map (fun card ->
+          [ ("hash", card |> CardSpecSrc.toHash)
+            ("yaml", card |> Yaml.dump) ]
+          |> Map.ofList
+          )
+      let res =
+        [
+          ("cards", JsonConvert.SerializeObject(yamlList))
+        ]
+        |> Map.ofList
+        |> postAsync ["join"; leagueId]
+        |> Async.RunSynchronously
+      printfn "%s" res
+    }
+
   let usage () =
     """
 Type one of these commands:
-(No commands available now)
+join leagueId cardListPath
 """
 
   let rec cake () =
@@ -65,6 +92,8 @@ Type one of these commands:
       | line ->
           let args = line.Split([|' '|], StringSplitOptions.RemoveEmptyEntries)
           match args |> Array.toList with
+          | "join" :: (Int32 _ as leagueId) :: cardListPath :: _ ->
+              do! join leagueId cardListPath
           | _ -> printfn "%s" (usage ())
           return! cake ()
     }
