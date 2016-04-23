@@ -124,9 +124,9 @@ deck leagueId deckPath          Set the deck for your next game
       | line ->
           let args = line.Split([|' '|], StringSplitOptions.RemoveEmptyEntries)
           match args |> Array.toList with
-          | "join" :: (Int32 _ as leagueId) :: cardListPath :: _ ->
+          | "join" :: leagueId :: cardListPath :: _ ->
               do! join leagueId cardListPath
-          | "deck" :: (Int32 _ as leagueId) :: deckPath :: _ ->
+          | "deck" :: leagueId :: deckPath :: _ ->
               do! updateNextLeagueDeck leagueId deckPath
           | _ -> printfn "%s" (usage ())
           return! cake ()
