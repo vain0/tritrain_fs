@@ -79,10 +79,42 @@ module Cake =
       printfn "%s" res
     }
 
+  /// Returns the deck's hash
+  let addDeck deckPath =
+    trial {
+      let! deck = DeckSpecSrc.load deckPath
+      let cards =
+        deck.Cards |> T7.toList
+        |> List.map (CardSpec.toSrc >> CardSpecSrc.toHash)
+      let hash  =
+        deck |> DeckSpec.toSrc |> DeckSpecSrc.toHash
+      do
+        [ ("name", deck.Name)
+          ("hash", hash)
+          ("card_hashes", JsonConvert.SerializeObject(cards))
+        ]
+        |> Map.ofList
+        |> postAsync ["addDeck"]
+        |> Async.Ignore
+        |> Async.RunSynchronously
+      return hash
+    }
+
+  let updateNextLeagueDeck leagueId deckPath =
+    trial {
+      let! hash = deckPath |> addDeck
+      do
+        Map.empty
+        |> postAsync ["updateLeagueNextDeck"; leagueId; hash]
+        |> Async.RunSynchronously
+        |> printfn "%s"
+    }
+
   let usage () =
     """
 Type one of these commands:
 join leagueId cardListPath
+deck leagueId deckPath          Set the deck for your next game
 """
 
   let rec cake () =
@@ -94,6 +126,8 @@ join leagueId cardListPath
           match args |> Array.toList with
           | "join" :: (Int32 _ as leagueId) :: cardListPath :: _ ->
               do! join leagueId cardListPath
+          | "deck" :: (Int32 _ as leagueId) :: deckPath :: _ ->
+              do! updateNextLeagueDeck leagueId deckPath
           | _ -> printfn "%s" (usage ())
           return! cake ()
     }

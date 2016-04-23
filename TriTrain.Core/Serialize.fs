@@ -146,3 +146,6 @@ module DeckSpecSrc =
       |> pass
     with
     | e -> fail (e.Message)
+
+  let toHash src =
+    src |> serialize |> Hash.hashString
