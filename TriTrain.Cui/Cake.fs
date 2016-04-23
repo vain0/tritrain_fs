@@ -20,14 +20,14 @@ module Cake =
       let! res =
         HttpWebRequest.createGet (url action) "application/json" cookie
         |> HttpWebRequest.getResponseAsync 
-      return! res.GetResponseStream() |> Stream.readToEndAsync
+      return! res |> WebResponse.readContentAsync
     }
 
   let postAsync action args =
     async {
       let! req = HttpWebRequest.createPostAsync (url action) args cookie
       let! res = req |> HttpWebRequest.getResponseAsync
-      return! res.GetResponseStream() |> Stream.readToEndAsync
+      return! res |> WebResponse.readContentAsync
     }
 
   let tryLogin userName password =

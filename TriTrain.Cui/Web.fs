@@ -5,7 +5,7 @@ open System.IO
 open System.Text
 open System.Net
 open System.Web // references System.Web
-open TriTrain.Core.Util // tap
+open TriTrain.Core.Util // tap, Stream
 
 module Map =
   let toFormUrlEncoded (m: Map<string, string>) =
@@ -43,3 +43,8 @@ module HttpWebRequest =
 
   let getResponseAsync (req: HttpWebRequest) =
     req.GetResponseAsync() |> Async.AwaitTask
+
+module WebResponse =
+  let readContentAsync (res: WebResponse) =
+    res.GetResponseStream()
+    |> Stream.readToEndAsync
