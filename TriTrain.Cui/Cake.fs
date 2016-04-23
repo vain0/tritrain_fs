@@ -21,7 +21,7 @@ module Cake =
     @"http://vain0.s2.xrea.com/tritrain_cake/services/"
     + (action |> String.concat "/")
 
-  let requestJsonAsync action =
+  let getJsonAsync action =
     async {
       let req = WebRequest.CreateHttp(url action)
       req.Method <- WebRequestMethods.Http.Get
@@ -29,9 +29,9 @@ module Cake =
       return! req.GetResponseAsync() |> Async.AwaitTask
     }
 
-  let requestJsonTextAsync action =
+  let getJsonTextAsync action =
     async {
-      let! res    = requestJsonAsync action
+      let! res    = getJsonAsync action
       let stream  = res.GetResponseStream()
       let reader  = new StreamReader(stream)
       return! reader.ReadToEndAsync() |> Async.AwaitTask
@@ -89,7 +89,7 @@ Type one of these commands:
     function
     | "json" :: args ->
         trial {
-          requestJsonTextAsync args
+          getJsonTextAsync args
           |> Async.RunSynchronously
           |> printfn "%s"
         } |> Some
