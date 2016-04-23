@@ -163,6 +163,14 @@ module Reflection =
       DU<'t>.StringizeUnitCaseMap |> Map.toList |> List.map fst
 
 [<RequireQualifiedAccess>]
+module Stream =
+  open System.IO
+
+  let readToEndAsync (stream: Stream) =
+    let reader = new StreamReader(stream)
+    in reader.ReadToEndAsync() |> Async.AwaitTask
+
+[<RequireQualifiedAccess>]
 module Random =
   let rng = Random()
 
