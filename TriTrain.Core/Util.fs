@@ -163,6 +163,14 @@ module Reflection =
       DU<'t>.StringizeUnitCaseMap |> Map.toList |> List.map fst
 
 [<RequireQualifiedAccess>]
+module Stream =
+  open System.IO
+
+  let readToEndAsync (stream: Stream) =
+    let reader = new StreamReader(stream)
+    in reader.ReadToEndAsync() |> Async.AwaitTask
+
+[<RequireQualifiedAccess>]
 module Random =
   let rng = Random()
 
@@ -176,6 +184,18 @@ module Random =
       if len = 0
       then None
       else xs |> Seq.item (rng.Next(0, len - 1)) |> Some
+
+module Hash =
+  open System.Security.Cryptography
+  open System.Text
+
+  let toString: byte [] -> string =
+    Array.map (sprintf "%02x") >> String.concat ""
+
+  let hashString (s: string) =
+    let data = Encoding.UTF8.GetBytes(s)
+    let hash = MD5.Create().ComputeHash(data)
+    in hash |> toString
 
 [<RequireQualifiedAccess>]
 module Observable =
