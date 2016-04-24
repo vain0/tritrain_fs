@@ -7,6 +7,7 @@ open System
 open System.Net
 open System.IO
 open System.Text
+open System.Xml.Linq
 open Chessie.ErrorHandling
 open Newtonsoft.Json
 open Newtonsoft.Json.FSharp
@@ -25,6 +26,12 @@ module Cake =
         HttpWebRequest.createGet (url action) "application/json" cookie
         |> HttpWebRequest.getResponseAsync 
       return! res |> WebResponse.readContentAsync
+    }
+
+  let getJsonAsXDocumentAsync action =
+    async {
+      let! json = getJsonTextAsync action
+      return JsonConvert.DeserializeXNode(json)
     }
 
   let postAsync action args =
