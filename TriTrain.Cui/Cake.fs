@@ -178,9 +178,9 @@ module Cake =
   let usage () =
     """
 Type one of these commands:
-join leagueId cardListPath
-deck leagueId deckPath          Set the deck for your next game
-eval leagueId                   Eval next league game [for owners]
+l_join leagueId cardListPath
+l_deck leagueId deckPath          Set the deck for your next game
+l_eval leagueId                   Eval next league game [for owners]
 """
 
   let rec cake () =
@@ -190,11 +190,11 @@ eval leagueId                   Eval next league game [for owners]
       | line ->
           let args = line.Split([|' '|], StringSplitOptions.RemoveEmptyEntries)
           match args |> Array.toList with
-          | "join" :: leagueId :: cardListPath :: _ ->
+          | "l_join" :: leagueId :: cardListPath :: _ ->
               do! join leagueId cardListPath
-          | "deck" :: leagueId :: deckPath :: _ ->
+          | "l_deck" :: leagueId :: deckPath :: _ ->
               do! updateNextLeagueDeck leagueId deckPath
-          | "eval" :: leagueId :: _ ->
+          | "l_eval" :: leagueId :: _ ->
               do! evalNextLeagueGame leagueId
           | _ -> printfn "%s" (usage ())
           return! cake ()
