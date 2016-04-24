@@ -185,19 +185,23 @@ l_eval leagueId                   Eval next league game [for owners]
 
   let rec cake () =
     trial {
-      let! args =
-        Console.ReadLine()
-        |> Console.parseCommandLine
-      match args with
-      | ("end" | "exit" | "halt" | "quit") :: _ ->
-          return ()
-      | "l_join" :: leagueId :: cardListPath :: _ ->
-          do! join leagueId cardListPath
-      | "l_deck" :: leagueId :: deckPath :: _ ->
-          do! updateNextLeagueDeck leagueId deckPath
-      | "l_eval" :: leagueId :: _ ->
-          do! evalNextLeagueGame leagueId
-      | _ -> printfn "%s" (usage ())
+      try
+        let! args =
+          Console.ReadLine()
+          |> Console.parseCommandLine
+        match args with
+        | ("end" | "exit" | "halt" | "quit") :: _ ->
+            return ()
+        | "l_join" :: leagueId :: cardListPath :: _ ->
+            do! join leagueId cardListPath
+        | "l_deck" :: leagueId :: deckPath :: _ ->
+            do! updateNextLeagueDeck leagueId deckPath
+        | "l_eval" :: leagueId :: _ ->
+            do! evalNextLeagueGame leagueId
+        | _ -> printfn "%s" (usage ())
+      with
+      | :? AggregateException as e ->  // async exceptions
+          e.InnerExceptions |> Seq.iter (fun e -> eprintfn "%s" e.Message)
       return! cake ()
     }
 
