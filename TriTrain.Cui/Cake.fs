@@ -117,11 +117,70 @@ module Cake =
         |> printfn "%s"
     }
 
+  let evalNextLeagueGame leagueId =
+    trial {
+      let doc =
+        getJsonAsXDocumentAsync ["getNextLeagueGame"; leagueId]
+        |> Async.RunSynchronously
+      let root        = doc.Element(Xml.xname "root")
+      let leagueGame  = root |> Xml.element "LeagueGame"
+      let game        = root |> Xml.element "Game"
+      let gameIndex   = leagueGame |> Xml.element "ix" |> Xml.value
+      let gameId      = game |> Xml.element "id" |> Xml.value
+      let gameUsers   = game |> Xml.elements "GameUser"
+      let! plList =
+        [ for gameUser in gameUsers ->
+            trial {
+              let name =
+                gameUser
+                |> Xml.element "User"
+                |> Xml.element "username"
+                |> Xml.value
+              let deckId = gameUser |> Xml.element "GameUser" |> Xml.element "deck_id"
+              let! deck =
+                if deckId.IsEmpty
+                then fail "The deck isn't registered."
+                else
+                  let yaml =
+                    gameUser
+                    |> Xml.element "Deck"
+                    |> Xml.element "yaml"
+                    |> Xml.value
+                  in DeckSpecSrc.deserialize yaml
+              return { Name = name; Deck = deck }
+            }
+        ]
+        |> Trial.collect
+      match plList with
+      | [plLft; plRgt] ->
+          let log = new StringWriter()
+          let (_, result) =
+            Console.localOut log (fun () ->
+                TestBattle.runGameWithObserver
+                  (Broadcaster.observe (* paginates = *) false)
+                  (plLft, plRgt)
+                )
+          let resultCode =
+            match result with
+            | Win PlLft -> 0
+            | Win PlRgt -> 1
+            | Draw -> 2
+          do
+            [ ("result" , resultCode |> string)
+              ("log"    , log |> string)
+            ] |> Map.ofList
+            |> postAsync ["addLeagueGameResult"; leagueId; gameIndex]
+            |> Async.RunSynchronously
+            |> printfn "%s"
+      | _ -> assert false
+    }
+
   let usage () =
     """
 Type one of these commands:
 join leagueId cardListPath
 deck leagueId deckPath          Set the deck for your next game
+eval leagueId                   Eval next league game [for owners]
 """
 
   let rec cake () =
@@ -135,6 +194,8 @@ deck leagueId deckPath          Set the deck for your next game
               do! join leagueId cardListPath
           | "deck" :: leagueId :: deckPath :: _ ->
               do! updateNextLeagueDeck leagueId deckPath
+          | "eval" :: leagueId :: _ ->
+              do! evalNextLeagueGame leagueId
           | _ -> printfn "%s" (usage ())
           return! cake ()
     }
