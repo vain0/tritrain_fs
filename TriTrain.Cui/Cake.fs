@@ -185,19 +185,20 @@ l_eval leagueId                   Eval next league game [for owners]
 
   let rec cake () =
     trial {
-      match Console.ReadLine() with
-      | null | "end" | "exit" | "halt" | "quit" -> return ()
-      | line ->
-          let args = line.Split([|' '|], StringSplitOptions.RemoveEmptyEntries)
-          match args |> Array.toList with
-          | "l_join" :: leagueId :: cardListPath :: _ ->
-              do! join leagueId cardListPath
-          | "l_deck" :: leagueId :: deckPath :: _ ->
-              do! updateNextLeagueDeck leagueId deckPath
-          | "l_eval" :: leagueId :: _ ->
-              do! evalNextLeagueGame leagueId
-          | _ -> printfn "%s" (usage ())
-          return! cake ()
+      let! args =
+        Console.ReadLine()
+        |> Console.parseCommandLine
+      match args with
+      | ("end" | "exit" | "halt" | "quit") :: _ ->
+          return ()
+      | "l_join" :: leagueId :: cardListPath :: _ ->
+          do! join leagueId cardListPath
+      | "l_deck" :: leagueId :: deckPath :: _ ->
+          do! updateNextLeagueDeck leagueId deckPath
+      | "l_eval" :: leagueId :: _ ->
+          do! evalNextLeagueGame leagueId
+      | _ -> printfn "%s" (usage ())
+      return! cake ()
     }
 
   let (|Command|_|) =
