@@ -69,17 +69,11 @@ module Game =
   let modifyCard f cardId g =
     g |> updateCard (g |> card cardId |> f)
 
-  let happen ev g =
-    g |> tap (fun g -> (g |> events).Next(ev, g))
-
-  let endIn r g =
-    let g     = g |> happen (GameEnd r)
-    let ()    = (g |> events).Completed()
-    in (g, r)
+  let mutable update: GameEvent -> Game -> Game =
+    (fun ev g -> failwith "undefined")
 
   let trigger trig g =
     { g with Triggered = trig :: (g |> triggered) }
-    |> happen (CardAbilityTrigger trig)
 
   let placeMap g: Map<Place, CardId> =
     PlayerId.all
@@ -121,7 +115,6 @@ module Game =
       g
       |> updateBoard plId
           (board |> Map.add vx cardId)
-      |> happen (CardEnter (cardId, (plId, vx)))
       |> triggerAbils WhenEtB cardId
 
   let dieCard cardId g =
@@ -141,15 +134,12 @@ module Game =
         if card' |> Card.isAlive then
           // 復活してボトムへ行く
           g
-          |> updateDeck plId
-              (g |> deck plId |> flip List.append [cardId])
-          |> happen (CardRegenerate (cardId, card' |> Card.hp))
+          |> update (CardRegenerate (cardId, card' |> Card.hp))
         elif card' |> Card.isDamned then
           // 復活せず、追放される
-          g |> happen (CardIsExiled cardId)
+          g |> update (CardIsExiled cardId)
         else // 復活せず、墓地へ行く
           g
-          |> happen (CardDie cardId)
           |> updateTrash plId
               (g |> trash plId |> Set.add cardId)
 
@@ -157,30 +147,19 @@ module Game =
     let target    = g |> card targetId
     let hp'       = target |> Card.hp |> (+) amount
     let g         = g |> updateCard (target |> Card.setHp hp')
-    let g         = g |> happen (CardHpInc (targetId, amount))
     let g =
       if g |> card targetId |> Card.isDead
       then g |> dieCard targetId
       else g
     in g
     
-  let incCardAt amount targetId g =
-    g
-    |> modifyCard (Card.incAt amount) targetId
-    |> happen (CardAtInc (targetId, amount))
-
-  let incCardAg amount targetId g =
-    g
-    |> modifyCard (Card.incAg amount) targetId
-    |> happen (CardAgInc (targetId, amount))
-
   /// 継続的効果を取得するときの処理
   let onGainKEffect targetId keff g =
     match keff |> KEffect.typ with
     | ATInc (One, value) ->
-        g |> incCardAt (value |> int) targetId
+        g |> update (CardAtInc (targetId, value |> int))
     | AGInc (One, value) ->
-        g |> incCardAg (value |> int) targetId
+        g |> update (CardAgInc (targetId, value |> int))
     | ATInc _
     | AGInc _ -> failwith "never"
     | Curse _
@@ -195,9 +174,9 @@ module Game =
   let onLoseKEffect targetId keff g =
     match keff |> KEffect.typ with
     | ATInc (One, value) ->
-        g |> incCardAt (value |> int |> (~-)) targetId
+        g |> update (CardAtInc (targetId, value |> int |> (~-)))
     | AGInc (One, value) ->
-        g |> incCardAg (value |> int |> (~-)) targetId
+        g |> update (CardAgInc (targetId, value |> int |> (~-)))
     | ATInc _
     | AGInc _ -> failwith "never"
     | Haunted ->
@@ -212,11 +191,10 @@ module Game =
   let giveKEffect targetId keff g =
     let target    = g |> card targetId
     if target |> Card.isStable then
-      g |> happen (CardNullifyEffect (targetId, Give keff))
+      g |> update (CardNullifyEffect (targetId, Give keff))
     else
       let effs'     = keff :: (target |> Card.effects)
       let g         = g |> updateCard { target with Effects = effs' }
-      let g         = g |> happen (CardGainEffect (targetId, keff))
       let g         = g |> onGainKEffect targetId keff
       in g
 
@@ -228,15 +206,11 @@ module Game =
     in
       g
       |> updateCard card'
-      |> fold' lost (fun keff g ->
-          g
-          |> happen (CardLoseEffect (targetId, keff))
-          |> onLoseKEffect targetId keff
-          )
+      |> fold' lost (onLoseKEffect targetId)
 
   let cancelKEffect keffcan targetId g =
     if g |> card targetId |> Card.isStable then
-      g |> happen (CardNullifyEffect (targetId, Cancel keffcan))
+      g |> update (CardNullifyEffect (targetId, Cancel keffcan))
     else
       g |> loseKEffect targetId (KEffect.isCancelledBy keffcan)
 
@@ -248,7 +222,7 @@ module Game =
       match oeffType with
       | Damage amount ->
           if target |> Card.isImmune then
-            g |> happen (CardNullifyEffect (targetId, oeffType))
+            g |> update (CardNullifyEffect (targetId, oeffType))
           else
             let coeffByElem =
               match actorOpt with
@@ -265,7 +239,7 @@ module Game =
             if Random.roll prob then
               let target  = g |> card targetId
               if target |> Card.isHaunted then
-                g |> happen (CardNullifyEffect (targetId, oeffType))
+                g |> update (CardNullifyEffect (targetId, oeffType))
               else
                 let amount  = target |> Card.hp |> (~-)
                 let g       = g |> incCardHp targetId amount
@@ -318,7 +292,7 @@ module Game =
         g
         |> updateCard tar'
         |> updateTrash plId trash'
-        |> summon tarId (plId, vx)
+        |> update (CardEnter (tarId, (plId, vx)))
     } |> Trial.either fst (fun _ -> g)
 
   /// moves: (移動するカードのID, 元の位置, 後の位置) の列
@@ -331,7 +305,6 @@ module Game =
     |> fold' moves (fun (cardId, _, (plId', vx')) g ->
         g |> updateBoard plId' (g |> board plId' |> Map.add vx' cardId)
         )
-    |> happen (CardMove moves)
 
   let swapCards r1 r2 g =
     let placeMap = g |> placeMap
@@ -428,23 +401,25 @@ module Game =
     | None -> g
     | Some skill ->
         g
-        |> happen (CardBeginAction (actorId, skill))
+        |> update (CardBeginAction (actorId, skill))
         |> procOEffectList
             (Some actorId) (actorId |> CardId.owner, vx)
             (skill |> Skill.toEffectList)
 
+  let solveTriggered trig g =
+    let (actorId, source, (_, (_, oeffs))) = trig
+    let source    = g |> searchBoardFor actorId |> Option.getOr source
+    in
+      g |> procOEffectList (Some actorId) source oeffs
+
   /// 誘発した能力を解決する
-  let rec solveTriggered g =
+  let rec solveTriggeredAll g =
     match g |> triggered with
     | [] -> g
     | trig :: triggered' ->
-        let (actorId, source, (_, (_, oeffs))) = trig
-        let source    = g |> searchBoardFor actorId |> Option.getOr source
-        in
-          { g with Triggered = triggered' }
-          |> happen (SolveTriggered trig)
-          |> procOEffectList (Some actorId) source oeffs
-          |> solveTriggered
+        { g with Triggered = triggered' }
+        |> update (SolveTriggered trig)
+        |> solveTriggeredAll
 
   /// プレイヤー plId が位置 vx にデッキトップを召喚する。
   /// デッキが空なら何もしない。
@@ -454,7 +429,7 @@ module Game =
     | cardId :: deck' ->
         g
         |> updateDeck plId deck'
-        |> summon cardId (plId, vx)
+        |> update (CardEnter (cardId, (plId, vx)))
 
   let procSummonPhase plId g =
     g |> fold'
@@ -503,11 +478,7 @@ module Game =
         (fun (KeyValue (place, cardId)) g ->
             match g |> card cardId |> Card.curseTotal with
             | 0 -> g
-            | total ->
-                g
-                |> happen (CardIsCursed (cardId, total))
-                |> procOEffectToUnit (Damage (One, float total)) None cardId
-                |> cancelKEffect CurseCanceller cardId
+            | total -> g |> update (CardIsCursed (cardId, total))
             )
 
   /// カードにかかっている継続的効果の経過ターン数を更新する
@@ -526,16 +497,15 @@ module Game =
     | SummonPhase ->
         let g =
           g
-          |> happen TurnBegin
           |> fold' (PlayerId.all) procSummonPhase
         let isLost plId =
           g |> board plId |> Map.isEmpty
         in
           // 勝敗判定
           match PlayerId.all |> List.filter isLost with
-          | []      -> g |> procPhase UpkeepPhase
-          | [plId]  -> g |> endIn (plId |> PlayerId.inverse |> Win)
-          | _       -> g |> endIn Draw
+          | []      -> g |> update (PhaseBegin UpkeepPhase)
+          | [plId]  -> g |> update (plId |> PlayerId.inverse |> Win |> GameEnd)
+          | _       -> g |> update (GameEnd Draw)
 
     | UpkeepPhase ->
         g
@@ -552,14 +522,14 @@ module Game =
         | Some (vx, actorId) ->
             g
             |> procAction actorId vx
-            |> procPhase (actedCards |> Set.add actorId |> ActionPhase)
+            |> update (actedCards |> Set.add actorId |> ActionPhase |> PhaseBegin)
         | None ->
-            g |> procPhase RotatePhase
+            g |> update (PhaseBegin RotatePhase)
 
     | RotatePhase ->
         g
         |> fold' (PlayerId.all) rotateBoard
-        |> procPhase PassPhase
+        |> update (PhaseBegin PassPhase)
 
     | PassPhase ->
         let g =
@@ -567,15 +537,68 @@ module Game =
         in
           // ターン数更新
           match g |> turn with
-          | MaxTurns -> g |> endIn Draw
-          | t  -> { g with Turn = t + 1 } |> procPhase SummonPhase
+          | MaxTurns -> g |> update (GameEnd Draw)
+          | t  -> { g with Turn = t + 1 } |> update TurnBegin
 
   /// 誘発した能力を解決してからフェイズ処理をする
   and procPhase ph g =
     g |> solveTriggered |> procPhaseImpl ph
 
   let run g: Game * GameResult =
-    g
-    |> happen GameBegin
-    |> procRegenerationPhase
-    |> procPhase SummonPhase
+    g |> update GameBegin
+
+  let updateImpl ev g: Game =
+    match ev with
+    | GameBegin ->
+        g
+        |> procRegenerationPhase
+        |> update TurnBegin
+    | GameEnd r ->
+        let () = (g |> events).Completed()
+        in g
+    | TurnBegin ->
+        g |> update (PhaseBegin SummonPhase)
+    | PhaseBegin ph ->
+        g |> procPhase ph
+
+    | CardEnter (cardId, place) ->
+        g |> summon cardId place
+    | CardAbilityTrigger trig ->
+        g |> trigger trig
+    | SolveTriggered trig ->
+        g |> trigger
+
+    | CardBeginAction     of CardId * Skill
+
+    | CardNullifyEffect (cardId, oeff) ->
+        g
+
+    | CardIsCursed (cardId, amount) ->
+        g
+        |> procOEffectToUnit (Damage (One, float amount)) None cardId
+        |> cancelKEffect CurseCanceller cardId
+
+    | CardHpInc (cardId, amount) ->
+        g |> incCardHp cardId amount
+    | CardAtInc (cardId, amount) ->
+        g |> modifyCard (Card.incAt amount) cardId
+    | CardAgInc (cardId, amount) ->
+        g |> modifyCard (Card.incAg amount) cardId
+
+    | CardRegenerate (cardId, amount) ->
+        let plId = cardId |> CardId.owner
+        in
+          g |> updateDeck plId
+              (g |> deck plId |> flip List.append [cardId])
+    | CardIsExiled cardId ->
+        g
+    | CardDie cardId ->
+        g |> dieCard cardId
+
+    | CardGainEffect (cardId, keff) ->
+        g |> giveKEffect cardId keff
+    | CardLoseEffect (cardId, keff) ->
+        g |> loseKEffect cardId keff
+
+    | CardMove moves ->
+        g |> moveCards movess
