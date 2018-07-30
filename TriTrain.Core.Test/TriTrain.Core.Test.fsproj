@@ -41,13 +41,6 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\TriTrain.Core\TriTrain.Core.fsproj">
-      <Name>TriTrain.Core</Name>
-      <Project>{f622fcbd-dac7-49df-a058-c2eb3c178177}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
