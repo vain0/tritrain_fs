@@ -2,6 +2,5 @@ source https://www.nuget.org/api/v2
 
 nuget Persimmon
 nuget Persimmon.Runner
-nuget Persimmon.Console
 nuget FsYaml
 github fsprojects/Chessie src/Chessie/ErrorHandling.fs
