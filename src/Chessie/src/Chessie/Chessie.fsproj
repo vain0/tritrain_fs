@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Id>Chessie.ErrorHandling.Portable</Id>
+    <Description>Railway-oriented programming for .NET</Description>
+    <Owners>Steffen Forkmann, Max Malook, Tomasz Heimowski</Owners>
+    <Authors>Steffen Forkmann, Max Malook, Tomasz Heimowski</Authors>
+    <LicenseUrl>http://github.com/vain0x/Chessie/blob/master/LICENSE.txt</LicenseUrl>
+    <ProjectUrl>http://github.com/vain0x/Chessie</ProjectUrl>
+    <IconUrl>https://raw.githubusercontent.com/fsprojects/Chessie/master/docs/files/img/logo.png</IconUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="ErrorHandling.fs" />
+  </ItemGroup>
+
+</Project>

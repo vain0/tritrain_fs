@@ -372,6 +372,8 @@ module BatchedQueue =
 
 [<AutoOpen>]
 module TrialOperators =
+  type Result<'T, 'E> = Trial<'T, 'E>
+
   let warnf value fmt =
     kprintf (flip warn value) fmt
 
