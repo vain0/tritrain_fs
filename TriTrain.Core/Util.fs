@@ -37,9 +37,6 @@ module T7 =
 
 [<RequireQualifiedAccess>]
 module Seq =
-  let item i xs =
-    xs |> Seq.skip i |> Seq.head
-
   let product (xs: seq<'x>) (ys: seq<'y>): seq<'x * 'y> =
     seq {
       for x in xs do
@@ -54,15 +51,12 @@ module Option =
 
 [<RequireQualifiedAccess>]
 module List =
-  let take len xs =
-    xs |> List.toSeq |> Seq.take len |> List.ofSeq
-
   /// List.zip を行う。
   /// 長さが異なる場合は、短いほうに合わせて縮める。
   let zipShrink (l: list<'l>) (r: list<'r>): list<'l * 'r> =
     let len = min (l |> List.length) (r |> List.length)
-    let l = l |> take len
-    let r = r |> take len
+    let l = l |> List.take len
+    let r = r |> List.take len
     in List.zip l r
 
   let tryMaxBy (proj: 'x -> 'y) (xs: list<'x>): option<'x> =
