@@ -160,18 +160,11 @@ module Reflection =
 
 [<RequireQualifiedAccess>]
 module Random =
-  open FsRandom
+  let rng = Random()
 
-  let mutable state =
-    Utility.createRandomState ()
-
-  let get gen =
-    let (result, state') = Random.next gen state
-    let () = state <- state'
-    in result
-
-  let flip prob =
-    Utility.flipCoin prob |> get
+  let roll (prob: float) =
+    rng.NextDouble() < prob
+    || prob >= 100.0
 
   let element (xs: seq<'x>): option<'x> =
     let len = xs |> Seq.length
