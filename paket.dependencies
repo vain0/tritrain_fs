@@ -1,5 +1,4 @@
 source https://www.nuget.org/api/v2
 
 nuget FsYaml
-nuget FsRandom
 github fsprojects/Chessie src/Chessie/ErrorHandling.fs
