@@ -82,44 +82,38 @@ module Types =
     int
 
   /// クリーチャーに作用する継続的効果
-  type KEffectTypeT<'amount> =
-    | ATInc         of 'amount
-    | AGInc         of 'amount
-    | Regenerate    of 'amount
+  type KEffectType =
+    | ATInc         of Amount
+    | AGInc         of Amount
+    | Regenerate    of Amount
     | Immune
     | Stable
     | Damned
     | Haunted
 
   /// 継続的効果 (Continuous Effect)
-  type KEffectT<'amount> =
+  type KEffect =
     {
-      Type          : KEffectTypeT<'amount>
+      Type          : KEffectType
       Duration      : Duration
     }
 
-  type KEffect      = KEffectT<Amount>
-  type KEffectObj   = KEffectT<float>
-
   /// 盤面上のカード単体に作用する単発的効果
-  type OEffectToUnitTypeT<'amount> =
-    | Damage        of 'amount
-    | Heal          of 'amount
-    | Death         of 'amount
-    | Give          of KEffectT<'amount>
+  type OEffectToUnitType =
+    | Damage        of Amount
+    | Heal          of Amount
+    | Death         of Amount
+    | Give          of KEffect
     //| Unsummon
 
   /// 単発的効果 (Oneshot Effect)
-  type OEffectT<'amount> =
+  type OEffect =
     | OEffectToUnits
-      of OEffectToUnitTypeT<'amount> * Scope
-    | Resurrect     of 'amount
+      of OEffectToUnitType * Scope
+    | Resurrect     of Amount
     | Swap          of ScopeForm
     | Rotate        of ScopeSide
     | GenToken      of list<CardSpec>
-
-  and OEffect =
-    OEffectT<Amount>
 
   and SkillAtom =
     SkillName * list<OEffect>
@@ -137,11 +131,8 @@ module Types =
     | WhenDie
     //| WhenDealt
 
-  and AbilityT<'amount> =
-    AbilName * (TriggerCond * list<OEffectT<'amount>>)
-
   and Ability =
-    AbilityT<Amount>
+    AbilName * (TriggerCond * list<OEffect>)
 
   and Status =
     {
@@ -170,7 +161,7 @@ module Types =
       CardId        : CardId
       Spec          : CardSpec
       Status        : Status
-      Effects       : list<KEffectObj>
+      Effects       : list<KEffect>
     }
 
   type DeckSpec =
@@ -204,7 +195,7 @@ module Types =
     }
 
   type Triggered =
-    CardId * Place * AbilityT<float>
+    CardId * Place * Ability
 
   type Phase =
     | SummonPhase
@@ -227,7 +218,7 @@ module Types =
     | CardAbilityTrigger  of Triggered
     | SolveTriggered      of Triggered
     | CardBeginAction     of CardId * Skill
-    | CardNullifyEffect   of CardId * OEffectToUnitTypeT<float>
+    | CardNullifyEffect   of CardId * OEffectToUnitType
     | CardHpInc           of CardId * amount: int
     | CardRegenerate      of CardId * amount: int
     | CardIsExiled        of CardId

@@ -183,7 +183,7 @@ module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration
 
-  let create (typ: KEffectTypeT<Amount>) (duration: int): KEffect =
+  let create (typ: KEffectType) (duration: int): KEffect =
     {
       Type        = typ
       Duration    = duration
@@ -318,7 +318,7 @@ module Card =
       |> effects
       |> List.paritionMap
           (function
-          | { Type = Regenerate value } -> Some value
+          | { Type = (Regenerate (One, value)) } -> Some value
           | _ -> None
           )
     let rate = regenValues |> List.sum |> flip (/) 100.0
@@ -336,7 +336,7 @@ module Card =
 
 module Amount =
   /// 変量を決定する
-  let rec resolve (actor: option<Card>) (amount: Amount): float =
+  let rec resolve (actor: option<Card>) (amount: Amount) =
     let rate = amount |> snd
     let value =
       match amount |> fst with
@@ -361,19 +361,19 @@ module Amount =
 
   /// 継続的効果の変量を固定する。
   /// 事後: 含まれる Amount はすべて (One, _) である。
-  let resolveKEffect actorOpt target keff: KEffectObj =
+  let resolveKEffect actorOpt target keff =
     match keff |> KEffect.typ with
     | ATInc amount ->
-        { keff with Type = ATInc (amount |> resolve actorOpt) }
+        { keff with Type = ATInc (One, amount |> resolve actorOpt) }
     | AGInc amount ->
-        { keff with Type = AGInc (amount |> resolve actorOpt) }
+        { keff with Type = AGInc (One, amount |> resolve actorOpt) }
     | Regenerate amount ->
-        { keff with Type = Regenerate (amount |> resolve actorOpt) }
+        { keff with Type = Regenerate (One, amount |> resolve actorOpt) }
     | Immune
     | Stable
     | Damned
     | Haunted
-      -> { Type = keff |> KEffect.typ; Duration = keff |> KEffect.duration }
+      -> keff
 
   /// 単発的効果の変量を固定する。
   /// 事後: 含まれる Amount はすべて (One, _) である。
