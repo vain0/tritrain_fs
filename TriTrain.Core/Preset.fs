@@ -94,8 +94,6 @@ module Skill =
 
       ("転生印"       , give (regenerate 0.50 1) homeFwd)
 
-      ("堕落"         , give (KEffect.create Damned 2) oppoEach)
-
       ( "太陽破"
       , pair (sacrifice homeFwd) (attack 0.50 oppoEach) )
 
