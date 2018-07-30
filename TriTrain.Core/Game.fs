@@ -1,5 +1,4 @@
-﻿[<AutoOpen>]
-module TriTrain.Core.Simulation
+﻿namespace TriTrain.Core
 
 open Chessie.ErrorHandling
 
