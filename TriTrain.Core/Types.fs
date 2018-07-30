@@ -220,8 +220,6 @@ module Types =
     | CardBeginAction     of CardId * Skill
     | CardNullifyEffect   of CardId * OEffectToUnitType
     | CardHpInc           of CardId * amount: int
-    | CardAtInc           of CardId * amount: int
-    | CardAgInc           of CardId * amount: int
     | CardRegenerate      of CardId * amount: int
     | CardIsExiled        of CardId
     | CardDie             of CardId
