@@ -157,6 +157,7 @@ module Ability =
   let presetList: list<Ability> =
     [
       ("晩成"         , (WhenBoT, [give (atInc 0.10 3) self]))
+      ("不傷"         , (WhenEtB, [give (KEffect.create Immune 1) self]))
       ("恒常"         , (WhenEtB, [give (KEffect.create Stable 1) self]))
       ("神速"         , (WhenEtB, [give (KEffect.create (AGInc (One, 30.0)) 1) self]))
       ("怨念"         , (WhenDie, [give (KEffect.create (Curse (AT, 0.10)) 99) oppoEach]))
