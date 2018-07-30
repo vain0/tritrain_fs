@@ -144,9 +144,7 @@ module Game =
           |> updateDeck plId
               (g |> deck plId |> flip List.append [cardId])
           |> happen (CardRegenerate (cardId, card' |> Card.hp))
-        elif card' |> Card.isDamned then
-          // 復活せず、追放される
-          g |> happen (CardIsExiled cardId)
+        
         else // 復活せず、墓地へ行く
           g
           |> happen (CardDie cardId)
@@ -176,7 +174,6 @@ module Game =
     | Regenerate _
     | Immune
     | Stable
-    | Damned
       -> g
 
   /// 継続的効果が消失するときの処理
@@ -191,7 +188,6 @@ module Game =
     | Regenerate _
     | Immune
     | Stable
-    | Damned
       -> g
 
   let giveKEffect targetId keff g =
