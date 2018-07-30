@@ -209,10 +209,6 @@ module Types =
     | Win           of PlayerId
     | Draw
 
-  type GameCont =
-    | Phase         of Phase
-    | End           of GameResult
-
   type GameEvent =
     | GameBegin
     | GameEnd             of GameResult

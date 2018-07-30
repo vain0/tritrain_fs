@@ -72,13 +72,10 @@ module Game =
   let happen ev g =
     g |> tap (fun g -> (g |> events).Next(ev, g))
 
-  let followedBy ph g =
-    (g, Phase ph)
-
   let endIn r g =
     let g     = g |> happen (GameEnd r)
     let ()    = (g |> events).Completed()
-    in (g, End r)
+    in (g, r)
 
   let trigger trig g =
     { g with Triggered = trig :: (g |> triggered) }
@@ -477,7 +474,7 @@ module Game =
         (g |> cardIdsOnBoard)
         updateDuration
 
-  let rec procPhaseImpl ph g: Game * GameCont =
+  let rec procPhaseImpl ph g =
     match ph with
     | SummonPhase ->
         let g =
@@ -489,33 +486,33 @@ module Game =
         in
           // 勝敗判定
           match PlayerId.all |> List.filter isLost with
-          | []      -> g |> followedBy UpkeepPhase
+          | []      -> g |> procPhase UpkeepPhase
           | [plId]  -> g |> endIn (plId |> PlayerId.inverse |> Win)
           | _       -> g |> endIn Draw
 
     | UpkeepPhase ->
         g
         |> triggerBoTAbils
-        |> followedBy (WindPhase (g |> turn |> flip (%) 2 |> (=) 1))
+        |> procPhase (WindPhase (g |> turn |> flip (%) 2 |> (=) 1))
 
     | WindPhase blows ->
         g
         |> procWindPhase blows
-        |> followedBy (ActionPhase Set.empty)
+        |> procPhase (ActionPhase Set.empty)
 
     | ActionPhase actedCards ->
         match g |> tryFindFastest actedCards with
         | Some (vx, actorId) ->
             g
             |> procAction actorId vx
-            |> followedBy (actedCards |> Set.add actorId |> ActionPhase)
+            |> procPhase (actedCards |> Set.add actorId |> ActionPhase)
         | None ->
-            g |> followedBy RotatePhase
+            g |> procPhase RotatePhase
 
     | RotatePhase ->
         g
         |> fold' (PlayerId.all) rotateBoard
-        |> followedBy PassPhase
+        |> procPhase PassPhase
 
     | PassPhase ->
         let g =
@@ -524,22 +521,14 @@ module Game =
           // ターン数更新
           match g |> turn with
           | MaxTurns -> g |> endIn Draw
-          | t  -> { g with Turn = t + 1 } |> followedBy SummonPhase
+          | t  -> { g with Turn = t + 1 } |> procPhase SummonPhase
 
   /// 誘発した能力を解決してからフェイズ処理をする
   and procPhase ph g =
     g |> solveTriggered |> procPhaseImpl ph
 
-  let init g =
+  let run g: Game * GameResult =
     g
     |> happen GameBegin
     |> procRegenerationPhase
-    |> (fun g -> (g, Phase SummonPhase))
-
-  let run g: Game * GameResult =
-    let rec loop (g, cont) =
-      match cont with
-      | End r -> (g, r)
-      | Phase ph -> g |> procPhase ph |> loop
-    in
-      g |> init |> loop
+    |> procPhase SummonPhase
