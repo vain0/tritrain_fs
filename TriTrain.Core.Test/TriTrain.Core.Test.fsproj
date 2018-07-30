@@ -141,7 +141,6 @@
       <Paket>True</Paket>
     </Content>
     <Compile Include="Arb.fs" />
-    <Compile Include="GameTest.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
