@@ -530,11 +530,6 @@ module Game =
   and procPhase ph g =
     g |> solveTriggered |> procPhaseImpl ph
 
-  let next (g, cont) =
-    match cont with
-    | End _ -> (g, cont)
-    | Phase ph -> g |> procPhase ph
-
   let init g =
     g
     |> happen GameBegin
