@@ -137,11 +137,6 @@ module Scope =
         |> List.map (placeSet source)
         |> Set.unionMany
 
-    | DiffScope (l, r) ->
-        Set.difference
-          (l |> placeSet source)
-          (r |> placeSet source)
-
 module KEffect =
   let typ         (keff: KEffect) = keff.Type
   let duration    (keff: KEffect) = keff.Duration
