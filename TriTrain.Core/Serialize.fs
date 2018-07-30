@@ -49,7 +49,9 @@ module Ability =
             )
         |> Trial.collect
       return
-        Map.empty |> fold' abils Ability.add
+        abils |> List.fold (fun m abil ->
+            m |> Ability.add abil
+            ) Map.empty
     }
 
   let toSrc (abil: Ability) =
