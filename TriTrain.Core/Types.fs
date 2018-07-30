@@ -81,10 +81,16 @@ module Types =
   type Duration =
     int
 
+  type KEffectCanceller =
+    | AgIncCanceller
+    | CurseCanceller
+    | ImmuneCanceller
+
   /// クリーチャーに作用する継続的効果
   type KEffectType =
     | ATInc         of Amount
     | AGInc         of Amount
+    | Curse         of Amount
     | Regenerate    of Amount
     | Immune
     | Stable
@@ -102,12 +108,21 @@ module Types =
   type OEffectToUnitType =
     | Damage        of Amount
     | Heal          of Amount
-    | Death         of Amount
+    | Hex           of Amount
     | Give          of KEffect
+    | Cancel        of KEffectCanceller
     //| Unsummon
+
+  /// ゲームの状態に関する条件
+  type StaticCond =
+    //| Not           of OEffectCond
+    /// 属性共鳴 (自陣にこの属性のクリーチャーが3体存在すること)
+    | Resonance     of Elem
 
   /// 単発的効果 (Oneshot Effect)
   type OEffect =
+    | AsLongAs
+      of StaticCond * then': OEffect * else': option<OEffect>
     | OEffectToUnits
       of OEffectToUnitType * Scope
     | Resurrect     of Amount
@@ -219,6 +234,7 @@ module Types =
     | SolveTriggered      of Triggered
     | CardBeginAction     of CardId * Skill
     | CardNullifyEffect   of CardId * OEffectToUnitType
+    | CardIsCursed        of CardId * amount: int
     | CardHpInc           of CardId * amount: int
     | CardRegenerate      of CardId * amount: int
     | CardIsExiled        of CardId

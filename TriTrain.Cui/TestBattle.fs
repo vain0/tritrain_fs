@@ -38,7 +38,10 @@ module TestBattle =
     | "show" :: DeckPathPair (deckPaths, _) ->
         trial {
           let! plPair = loadDecks deckPaths
-          let _ = runGameWithObserver (Broadcaster.observe) plPair
+          let _ =
+            runGameWithObserver
+              (Broadcaster.observe (* paginates = *) true)
+              plPair
           in ()
         } |> Some
     | _ -> None

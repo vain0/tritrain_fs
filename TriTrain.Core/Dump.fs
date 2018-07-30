@@ -5,6 +5,13 @@ open System
 
 // TODO: internationalization
 module Dump =
+  let dumpElem =
+    function
+    | Air   -> "風"
+    | Fire  -> "火"
+    | Water -> "水"
+    | Earth -> "地"
+
   let dumpRow =
     function
     | FwdRow -> "前列"
@@ -52,29 +59,45 @@ module Dump =
     | WhenEtB -> "盤面に出たとき"
     | WhenDie -> "死亡したとき"
 
+  let dumpStaticCond =
+    function
+    | Resonance elem ->
+        sprintf "自陣に%s属性クリーチャーが3体いる場合" (elem |> dumpElem)
+
+  let dumpKEffectType =
+    function
+    | ATInc amount ->
+        sprintf "ATが%s点増加する効果"
+          (dumpAmount amount)
+    | AGInc amount ->
+        sprintf "AGが%s点増加する効果"
+          (dumpAmount amount)
+    | Regenerate amount ->
+        sprintf "死亡後に最大HPの%s%cで再生する効果"
+          (dumpAmount amount) '%'
+    | Curse amount ->
+        sprintf "毎ターン%s点のダメージを受ける呪いの効果"
+          (dumpAmount amount)
+    | Immune ->
+        "ダメージを受けない効果"
+    | Stable ->
+        "継続的効果を受けない効果"
+    | Damned ->
+        "死亡後に追放される効果"
+    | Haunted ->
+        "憑霊効果"
+
   let dumpKEffect keff =
-    let duration =
-      sprintf "(%dT)" (keff |> KEffect.duration)
-    let typ =
-      match keff |> KEffect.typ with
-      | ATInc amount ->
-          sprintf "ATが%s点増加する効果"
-            (dumpAmount amount)
-      | AGInc amount ->
-          sprintf "AGが%s点増加する効果"
-            (dumpAmount amount)
-      | Regenerate amount ->
-          sprintf "死亡後に最大HPの%s%%で再生する効果"
-            (dumpAmount amount)
-      | Immune ->
-          "ダメージを受けない効果"
-      | Stable ->
-          "継続的効果を受けない効果"
-      | Damned ->
-          "死亡後に追放される効果"
-      | Haunted ->
-          "憑霊効果"
-    in typ + duration
+    let dur = sprintf "(%dT)" (keff |> KEffect.duration)
+    let typ = keff |> KEffect.typ |> dumpKEffectType
+    in typ + dur
+
+  /// これが打ち消せる効果を表す語句
+  let dumpKEffectCanceller =
+    function
+    | AgIncCanceller -> "AGが増減する効果"
+    | CurseCanceller  -> "呪いの効果"
+    | ImmuneCanceller -> dumpKEffectType Immune
 
   let dumpOEffectToUnit (typ, scope) =
     match typ with
@@ -86,21 +109,36 @@ module Dump =
         sprintf "%sを%s点回復する。"
           (dumpScope scope)
           (dumpAmount amount)
-    | Death amount ->
-        sprintf "%sを%s%%の確率で即死させる。"
+    | Hex amount ->
+        sprintf "%sを%s%cの確率で即死させる。"
           (dumpScope scope)
           (dumpAmount amount)
+          '%'
     | Give keff ->
         sprintf "%sに%sを与える。"
           (dumpScope scope)
           (dumpKEffect keff)
+    | Cancel keffcan ->
+        sprintf "%sにかかっている%sを打ち消す。"
+          (dumpScope scope)
+          (dumpKEffectCanceller keffcan)
 
   let rec dumpOEffect oeff =
     match oeff with
+    | AsLongAs (cond, then', else') ->
+        sprintf "%s、%s%s"
+          (cond |> dumpStaticCond)
+          (then' |> dumpOEffect)
+          (match else' with
+            | None -> ""
+            | Some oeff -> sprintf "そうでなければ、%s" (oeff |> dumpOEffect)
+            )
+
     | OEffectToUnits (typ, scope) ->
         dumpOEffectToUnit (typ, scope)
     | Resurrect amount ->
-        "味方1体を最大HPの" + dumpAmount amount + "%%持った状態で蘇生する。"
+        sprintf "味方1体を最大HPの%s%c持った状態で蘇生する。"
+          (dumpAmount amount) '%'
     | Swap form ->
         dumpScopeForm form + "を交代する。"
     | Rotate scopeSide ->

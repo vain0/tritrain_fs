@@ -173,6 +173,7 @@ module Game =
         g |> modifyCard (Card.incAg (value |> int)) targetId
     | ATInc _
     | AGInc _ -> failwith "never"
+    | Curse _
     | Regenerate _
     | Immune
     | Stable
@@ -191,6 +192,7 @@ module Game =
     | AGInc _ -> failwith "never"
     | Haunted ->
         g |> dieCard targetId
+    | Curse _
     | Regenerate _
     | Immune
     | Stable
@@ -207,6 +209,26 @@ module Game =
       let g         = g |> happen (CardGainEffect (targetId, keff))
       let g         = g |> onGainKEffect targetId keff
       in g
+
+  /// カードから、selector が真を返すような継続的効果を失わせる。
+  /// (恒常は作用しない。)
+  let loseKEffect targetId selector g =
+    let target          = g |> card targetId
+    let (card', lost)   = target |> Card.loseEffects selector
+    in
+      g
+      |> updateCard card'
+      |> fold' lost (fun keff g ->
+          g
+          |> happen (CardLoseEffect (targetId, keff))
+          |> onLoseKEffect targetId keff
+          )
+
+  let cancelKEffect keffcan targetId g =
+    if g |> card targetId |> Card.isStable then
+      g |> happen (CardNullifyEffect (targetId, Cancel keffcan))
+    else
+      g |> loseKEffect targetId (KEffect.isCancelledBy keffcan)
 
   let rec procOEffectToUnit oeffType actorIdOpt targetId g =
     let target    = g |> card targetId
@@ -227,7 +249,7 @@ module Game =
             in g |> incCardHp targetId (- amount)
       | Heal amount ->
           g |> incCardHp targetId (amount |> snd |> int |> max 0)
-      | Death  amount ->
+      | Hex amount ->
           let prob   = amount |> snd |> flip (/) 100.0
           let g =
             if Random.roll prob then
@@ -242,6 +264,8 @@ module Game =
           in g
       | Give keff ->
           g |> giveKEffect targetId keff
+      | Cancel keffcan ->
+          g |> cancelKEffect keffcan targetId
     in g
 
   let findTargets source scope g =
@@ -323,6 +347,20 @@ module Game =
           )
     in g |> moveCards moves
 
+  /// 行動者が静的条件を満たしているか？
+  let satisfy (cond: StaticCond) actorIdOpt g =
+    match cond with
+    | Resonance elem ->
+        match actorIdOpt with
+        | None -> false
+        | Some actorId ->
+            g |> board (actorId |> CardId.owner)
+            |> Seq.map (fun (KeyValue (_, cardId)) ->
+                g |> card cardId |> Card.elem
+                )
+            |> Seq.toList  // for structural equality
+            |> (=) (List.replicate 3 elem)
+
   let rec procOEffect oeff (actorIdOpt: option<CardId>) (source: Place) g =
     match oeff with
     | GenToken cardSpecs ->
@@ -346,7 +384,11 @@ module Game =
             (g |> findTargets source scope)
             (procOEffectToUnit typ actorIdOpt)
 
-  let rec procOEffectList actorIdOpt source oeffs g =
+    | AsLongAs (cond, then', else') ->
+        g |> procOEffectList actorIdOpt source
+            (if g |> satisfy cond actorIdOpt then [then'] else else' |> Option.toList)
+
+  and procOEffectList actorIdOpt source oeffs g =
     let loop oeff g =
       let source =  // actor の最新の位置に更新する
         actorIdOpt
@@ -445,29 +487,24 @@ module Game =
             (fun (KeyValue (source, actorId)) -> procOEffect oeff (actorId |> Some) source)
     else g
 
+  /// 呪いの効果を処理する
+  let procCurse g =
+    g |> fold' (g |> placeMap)
+        (fun (KeyValue (place, cardId)) g ->
+            match g |> card cardId |> Card.curseTotal with
+            | 0 -> g
+            | total ->
+                g
+                |> happen (CardIsCursed (cardId, total))
+                |> procOEffectToUnit (Damage (One, float total)) None cardId
+                |> cancelKEffect CurseCanceller cardId
+            )
+
   /// カードにかかっている継続的効果の経過ターン数を更新する
   let updateDuration cardId g =
-    let card = g |> card cardId 
-    let (effects', endEffects') =
-      card
-      |> Card.effects
-      |> List.map (fun keff ->
-          if (keff |> KEffect.duration) <= 1
-          then (None, Some keff)
-          else ({ keff with Duration = (keff |> KEffect.duration) - 1 } |> Some, None)
-          )
-      |> List.unzip
-    let card' = { card with Effects = effects' |> List.choose id }
-    in
-      g
-      |> updateCard card'
-      |> fold'
-          (endEffects' |> List.choose id)
-          (fun keff g ->
-              g
-              |> happen (CardLoseEffect (cardId, keff))
-              |> onLoseKEffect cardId keff
-              )
+    g
+    |> updateCard (g |> card cardId |> Card.decDuration)
+    |> loseKEffect cardId (function | { Duration = 0 } -> true | _ -> false)
   
   let updateDurationAll g =
     g |> fold'
@@ -516,7 +553,7 @@ module Game =
 
     | PassPhase ->
         let g =
-          g |> updateDurationAll
+          g |> procCurse |> updateDurationAll
         in
           // ターン数更新
           match g |> turn with

@@ -26,7 +26,7 @@ module T2 =
   let toList (x0, x1): list<_> =
     [x0; x1]
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module T7 =
   let toList (x0, x1, x2, x3, x4, x5, x6): list<_> =
     [x0; x1; x2; x3; x4; x5; x6]
@@ -129,6 +129,10 @@ module Map =
         | Some v'   -> m |> Map.add k v'
         ) Map.empty
 
+  /// The number of key-value pairs
+  let size self: int =
+    self |> Map.toSeq |> Seq.length
+
 module Reflection =
   open Microsoft.FSharp.Reflection
 
@@ -159,6 +163,14 @@ module Reflection =
       DU<'t>.StringizeUnitCaseMap |> Map.toList |> List.map fst
 
 [<RequireQualifiedAccess>]
+module Stream =
+  open System.IO
+
+  let readToEndAsync (stream: Stream) =
+    let reader = new StreamReader(stream)
+    in reader.ReadToEndAsync() |> Async.AwaitTask
+
+[<RequireQualifiedAccess>]
 module Random =
   let rng = Random()
 
@@ -172,6 +184,18 @@ module Random =
       if len = 0
       then None
       else xs |> Seq.item (rng.Next(0, len - 1)) |> Some
+
+module Hash =
+  open System.Security.Cryptography
+  open System.Text
+
+  let toString: byte [] -> string =
+    Array.map (sprintf "%02x") >> String.concat ""
+
+  let hashString (s: string) =
+    let data = Encoding.UTF8.GetBytes(s)
+    let hash = MD5.Create().ComputeHash(data)
+    in hash |> toString
 
 [<RequireQualifiedAccess>]
 module Observable =

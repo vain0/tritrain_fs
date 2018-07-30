@@ -189,6 +189,20 @@ module KEffect =
       Duration    = duration
     }
 
+  let decDuration keff =
+    { keff with Duration = (keff |> duration) - 1 }
+
+  let isCancelledBy keffcan keff =
+    match (keffcan, keff |> typ) with
+    | (AgIncCanceller, AGInc _)
+    | (CurseCanceller, Curse _)
+    | (ImmuneCanceller, Immune)
+      -> true
+    | (AgIncCanceller, _)
+    | (CurseCanceller, _)
+    | (ImmuneCanceller, _)
+      -> false
+
 module Skill =
   let rec toAtomList: Skill -> list<SkillAtom> =
     function
@@ -281,6 +295,11 @@ module Card =
   let isAlive   = hp >> flip (>) 0 
   let isDead    = isAlive >> not
 
+  let curseTotal card =
+    card |> effects
+    |> List.sumBy (function | { Type = Curse (One, value) } -> value | _ -> 0.0)
+    |> int
+
   let isImmune card =
     card |> effects
     |> List.exists (function | { Type = (Immune | Haunted) } -> true | _ -> false)
@@ -334,6 +353,22 @@ module Card =
     |> CardSpec.skills
     |> Map.tryFind (vx |> Row.ofVertex)
 
+  /// 継続的効果を失う。
+  /// selector が真を返したものが消える。
+  /// (恒常は作用しない。)
+  let loseEffects selector card =
+    let (lost, effs') =
+      card |> effects
+      |> List.partition (fun keff -> keff |> selector)
+    let card' =
+      { card with Effects = effs' }
+    in (card', lost)
+
+  /// 継続的効果の持続ターン数を更新する。
+  let decDuration card =
+    let effs' = card |> effects |> List.map KEffect.decDuration
+    in { card with Effects = effs' }
+
 module Amount =
   /// 変量を決定する
   let rec resolve (actor: option<Card>) (amount: Amount) =
@@ -367,6 +402,8 @@ module Amount =
         { keff with Type = ATInc (One, amount |> resolve actorOpt) }
     | AGInc amount ->
         { keff with Type = AGInc (One, amount |> resolve actorOpt) }
+    | Curse amount ->
+        { keff with Type = Curse (One, amount |> resolve actorOpt)}
     | Regenerate amount ->
         { keff with Type = Regenerate (One, amount |> resolve actorOpt) }
     | Immune
@@ -385,11 +422,13 @@ module Amount =
     | Heal amount ->
         let amount = amount |> resolve actorOpt
         in Heal (One, amount)
-    | Death  amount ->
+    | Hex amount ->
         let amount = amount |> resolve actorOpt
-        in Death (One, amount)
+        in Hex (One, amount)
     | Give keff ->
         keff |> resolveKEffect actorOpt target |> Give
+    | Cancel _
+      -> oeffType
 
 module DeckSpec =
   let name        (spec: DeckSpec) = spec.Name

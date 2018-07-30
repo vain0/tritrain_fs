@@ -51,7 +51,7 @@ module Broadcaster =
   let printPlayerName g plId =
     cprintf plId "%s" (g |> Game.player plId |> Player.name)
 
-  let printEvent (ev, g, g') =
+  let printEvent paginates (ev, g, g') =
     match ev with
     | GameBegin ->
         printfn "-------- Game Begin --------"
@@ -72,7 +72,7 @@ module Broadcaster =
           (g' |> Game.turn)
 
         /// Wait input
-        Console.ReadLine() |> ignore
+        if paginates then Console.ReadLine() |> ignore
 
     | PhaseBegin (WindPhase true) ->
         printfn "--------"
@@ -104,6 +104,10 @@ module Broadcaster =
     | CardNullifyEffect (cardId, _) ->
         printCardName g' cardId
         printfn " nullified an effect."
+
+    | CardIsCursed (cardId, _) ->
+        printCardName g' cardId
+        printfn " is cursed."
 
     | CardHpInc (cardId, amount) ->
         let hp = Game.card cardId >> Card.hp
@@ -142,10 +146,10 @@ module Broadcaster =
           printfn " moves to %s."
             (stringizePlace dst)
 
-  let observe g: IDisposable =
+  let observe paginates g: IDisposable =
     g
     |> Game.asObservable
     |> Observable.duplicateFirst
     |> Observable.pairwise
     |> Observable.map (fun ((_, g), (ev, g')) -> (ev, g, g'))
-    |> Observable.subscribe printEvent
+    |> Observable.subscribe (printEvent paginates)
