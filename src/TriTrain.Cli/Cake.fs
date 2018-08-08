@@ -24,7 +24,7 @@ module Cake =
     async {
       let! res =
         HttpWebRequest.createGet (url action) "application/json" cookie
-        |> HttpWebRequest.getResponseAsync 
+        |> HttpWebRequest.getResponseAsync
       return! res |> WebResponse.readContentAsync
     }
 
@@ -43,7 +43,7 @@ module Cake =
 
   let tryLogin userName password =
     trial {
-      let res = 
+      let res =
         [
           ("username", userName)
           ("password", password)
@@ -119,7 +119,7 @@ module Cake =
 
   let evalNextLeagueGame leagueId =
     trial {
-      let doc =
+      let doc: XElement =
         getJsonAsXDocumentAsync ["getNextLeagueGame"; leagueId]
         |> Async.RunSynchronously
       let root        = doc.Element(Xml.xname "root")
