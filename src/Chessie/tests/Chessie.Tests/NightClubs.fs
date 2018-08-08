@@ -1,4 +1,4 @@
-﻿module Chessie.Validaton.NightClubs.Tests
+module Chessie.Validaton.NightClubs.Tests
 
 open Chessie.ErrorHandling
 open NUnit.Framework

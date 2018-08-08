@@ -1,4 +1,4 @@
-﻿namespace TriTrain.Cui
+namespace TriTrain.Cli
 
 open TriTrain.Core
 open System

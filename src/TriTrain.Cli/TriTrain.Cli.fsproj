@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Util.fs" />
+    <Compile Include="Web.fs" />
+    <Compile Include="Random.fs" />
+    <Compile Include="JsonPolyfills.fs" />
+    <Compile Include="Observers.fs" />
+    <Compile Include="TestBattle.fs" />
+    <Compile Include="Cake.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TriTrain.Core\TriTrain.Core.fsproj" />
+    <ProjectReference Include="..\Chessie\src\Chessie\Chessie.fsproj" />
+  </ItemGroup>
+
+</Project>

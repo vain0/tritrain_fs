@@ -1,4 +1,4 @@
-﻿module Chessie.Builder.Tests
+module Chessie.Builder.Tests
 
 open Chessie.ErrorHandling
 open NUnit.Framework
