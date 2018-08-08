@@ -1,4 +1,4 @@
-﻿namespace TriTrain.Core.Validate
+namespace TriTrain.Core.Validate
 
 open System
 open TriTrain.Core

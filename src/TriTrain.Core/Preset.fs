@@ -1,4 +1,4 @@
-﻿namespace TriTrain.Core.Preset
+namespace TriTrain.Core.Preset
 
 open TriTrain.Core
 

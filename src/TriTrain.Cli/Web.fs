@@ -1,4 +1,4 @@
-﻿module TriTrain.Cli.Web
+module TriTrain.Cli.Web
 
 open System
 open System.IO

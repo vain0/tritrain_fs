@@ -1,4 +1,4 @@
-﻿namespace TriTrain.Cli
+namespace TriTrain.Cli
 
 open TriTrain.Core
 open TriTrain.Core.Serialize

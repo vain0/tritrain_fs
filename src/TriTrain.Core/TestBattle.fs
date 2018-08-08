@@ -1,4 +1,4 @@
-﻿namespace TriTrain.Core
+namespace TriTrain.Core
 
 open System.Threading
 

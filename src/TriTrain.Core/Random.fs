@@ -1,4 +1,4 @@
-﻿namespace TriTrain.Core
+namespace TriTrain.Core
 
 module Random =
   let name () =

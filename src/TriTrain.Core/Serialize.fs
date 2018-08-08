@@ -1,4 +1,4 @@
-﻿namespace TriTrain.Core.Serialize
+namespace TriTrain.Core.Serialize
 
 open TriTrain.Core
 open TriTrain.Core.Validate
