@@ -1,1 +1,4 @@
-module Program = let [<EntryPoint>] main _ = 0
+module TriTrain.Core.Tests.Program
+
+[<EntryPoint>]
+let main _ = 0

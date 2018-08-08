@@ -1,8 +1,8 @@
-﻿namespace TriTrain.Cui
+﻿namespace TriTrain.Cli
 
 open TriTrain.Core
 open TriTrain.Core.Serialize
-open TriTrain.Cui.Web
+open TriTrain.Cli.Web
 open System
 open System.Net
 open System.IO

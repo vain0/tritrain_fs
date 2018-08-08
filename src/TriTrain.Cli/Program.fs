@@ -1,8 +1,8 @@
-namespace TriTrain.Cui
+namespace TriTrain.Cli
 
 open TriTrain.Core
-open TriTrain.Cui.Random
-open TriTrain.Cui.TestBattle
+open TriTrain.Cli.Random
+open TriTrain.Cli.TestBattle
 open System
 open Chessie.ErrorHandling
 

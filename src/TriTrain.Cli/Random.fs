@@ -1,4 +1,4 @@
-﻿namespace TriTrain.Cui
+﻿namespace TriTrain.Cli
 
 open TriTrain.Core
 open TriTrain.Core.Serialize
@@ -12,7 +12,7 @@ module Random =
         trial {
           return
             Random.deckSpec ()
-            |> DeckSpec.toSrc 
+            |> DeckSpec.toSrc
             |> DeckSpecSrc.serialize
             |> printfn "%s"
         } |> Some
