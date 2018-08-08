@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
@@ -16,6 +16,10 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TriTrain.Cli", "TriTrain.Cli\TriTrain.Cli.fsproj", "{A0D31B32-DD20-418E-BD2F-4E7179A9C2E7}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TriTrain.Cli.Tests", "TriTrain.Cli.Tests\TriTrain.Cli.Tests.fsproj", "{C2B3C0AD-7C2F-432C-8FA3-F5DCB51A2606}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{268B41A8-F6CB-4043-BC2F-CA4143B5924A}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Chessie.Tests", "Chessie\tests\Chessie.Tests\Chessie.Tests.fsproj", "{0147AFB1-3105-477E-9130-9227F653EE14}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -90,9 +94,23 @@ Global
 		{C2B3C0AD-7C2F-432C-8FA3-F5DCB51A2606}.Release|x64.Build.0 = Release|Any CPU
 		{C2B3C0AD-7C2F-432C-8FA3-F5DCB51A2606}.Release|x86.ActiveCfg = Release|Any CPU
 		{C2B3C0AD-7C2F-432C-8FA3-F5DCB51A2606}.Release|x86.Build.0 = Release|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Debug|x64.Build.0 = Debug|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Debug|x86.Build.0 = Debug|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Release|x64.ActiveCfg = Release|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Release|x64.Build.0 = Release|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Release|x86.ActiveCfg = Release|Any CPU
+		{0147AFB1-3105-477E-9130-9227F653EE14}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{235E718D-235F-4001-9658-3FD5750D721C} = {B5B9691B-07AA-461A-B5DF-5863298B02A7}
 		{C78256D0-5DA2-4A5A-9775-36B363695DCF} = {235E718D-235F-4001-9658-3FD5750D721C}
+		{268B41A8-F6CB-4043-BC2F-CA4143B5924A} = {B5B9691B-07AA-461A-B5DF-5863298B02A7}
+		{0147AFB1-3105-477E-9130-9227F653EE14} = {268B41A8-F6CB-4043-BC2F-CA4143B5924A}
 	EndGlobalSection
 EndGlobal
